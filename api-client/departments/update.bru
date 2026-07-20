@@ -1,0 +1,27 @@
+meta {
+  name: Update Department
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/departments/{{createdDepartmentId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+body:json {
+  {
+    "description": "Descricao atualizada pela colecao Bruno."
+  }
+}
+
+tests {
+  test("atualiza departamento", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

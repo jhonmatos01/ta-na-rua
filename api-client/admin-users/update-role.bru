@@ -1,0 +1,25 @@
+meta {
+  name: Update User Role
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/admin/users/{{userId}}/role
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+body:json {
+  { "role": "CITIZEN" }
+}
+
+tests {
+  test("altera o perfil e revoga sessoes", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

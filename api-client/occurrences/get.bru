@@ -1,0 +1,19 @@
+meta {
+  name: Get Public Occurrence
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/v1/occurrences/{{occurrenceId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("nao expoe o autor na resposta publica", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.occurrence.createdBy).to.equal(undefined);
+    expect(res.getBody().data.occurrence.location.approximate).to.equal(true);
+  });
+}

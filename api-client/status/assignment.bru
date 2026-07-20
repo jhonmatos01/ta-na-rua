@@ -1,0 +1,31 @@
+meta {
+  name: Update Occurrence Assignment
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/occurrences/{{occurrenceId}}/assignment
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+body:json {
+  {
+    "departmentId": "{{departmentId}}",
+    "expectedResolutionAt": "2026-12-31T18:00:00.000Z",
+    "reason": "Revisao da previsao de atendimento.",
+    "publicMessage": "A previsao de atendimento foi atualizada."
+  }
+}
+
+tests {
+  test("atualiza atribuicao e prazo", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.occurrence.assignedDepartmentId).to.equal(bru.getEnvVar("departmentId"));
+  });
+}

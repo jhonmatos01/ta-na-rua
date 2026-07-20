@@ -1,0 +1,30 @@
+meta {
+  name: Internal AI - Recalculate Priority
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/internal/ai/recalculate-priority
+  body: json
+  auth: none
+}
+
+headers {
+  x-ai-service-secret: {{aiServiceSecret}}
+}
+
+body:json {
+  {
+    "occurrenceId": "{{occurrenceId}}"
+  }
+}
+
+tests {
+  test("recalcula quando o segredo interno esta configurado", function() {
+    expect([200, 503]).to.include(res.getStatus());
+    if (res.getStatus() === 200) {
+      expect(res.getBody().data.priorityScore).to.be.within(0, 100);
+    }
+  });
+}

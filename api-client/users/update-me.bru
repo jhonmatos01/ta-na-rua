@@ -1,0 +1,28 @@
+meta {
+  name: Update My Profile
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/users/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "name": "Ana Cidada Atualizada",
+    "neighborhood": "Pituba"
+  }
+}
+
+tests {
+  test("atualiza o perfil", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

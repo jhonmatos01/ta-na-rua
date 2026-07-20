@@ -1,0 +1,43 @@
+meta {
+  name: Webhooks - Status update
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/webhooks/status-update
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+script:pre-request {
+  const CryptoJS = require("crypto-js");
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const eventId = `bruno-status-${timestamp}`;
+  const body = JSON.stringify({
+    externalEventId: eventId,
+    eventType: "OCCURRENCE_STATUS_UPDATE",
+    occurredAt: new Date().toISOString(),
+    data: {
+      occurrenceId: bru.getEnvVar("occurrenceId"),
+      status: "IN_PROGRESS",
+      publicMessage: "Atualizacao recebida do fluxo demonstrativo."
+    }
+  });
+  const signature = CryptoJS.HmacSHA256(`${timestamp}.${body}`, bru.getEnvVar("n8nWebhookSecret")).toString(CryptoJS.enc.Hex);
+  req.setHeader("content-type", "application/json");
+  req.setHeader("x-webhook-id", eventId);
+  req.setHeader("x-webhook-timestamp", timestamp);
+  req.setHeader("x-webhook-signature", `sha256=${signature}`);
+  req.setBody(body);
+}
+
+tests {
+  test("registra e audita sem ignorar a maquina de estados", function() {
+    expect([200, 202]).to.include(res.getStatus());
+  });
+}

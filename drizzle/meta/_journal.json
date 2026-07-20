@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1784403836859,
+      "tag": "0000_enable-postgis",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784424653588,
+      "tag": "0001_clean_dorian_gray",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784516388143,
+      "tag": "0002_optimal_network",
+      "breakpoints": true
+    }
+  ]
+}

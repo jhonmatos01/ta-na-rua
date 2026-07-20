@@ -1,0 +1,36 @@
+meta {
+  name: Create Department
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/departments
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+body:json {
+  {
+    "municipalityId": "{{municipalityId}}",
+    "name": "Setor Bruno {{$timestamp}}",
+    "description": "Departamento temporario para validar a Fase 5."
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("createdDepartmentId", res.body.data.department.id);
+  }
+}
+
+tests {
+  test("cria departamento ativo", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().data.department.active).to.equal(true);
+  });
+}

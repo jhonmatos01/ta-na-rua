@@ -1,0 +1,32 @@
+meta {
+  name: Confirm Occurrence
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/occurrences/{{occurrenceId}}/confirmations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+body:json {
+  {
+    "directlyAffected": true,
+    "problemWorsened": false,
+    "comment": "Confirmacao executada pela colecao Bruno da Fase 4."
+  }
+}
+
+tests {
+  test("cria confirmacao e recalcula prioridade", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().data.confirmation.id).to.be.a("string");
+    expect(res.getBody().data.occurrence.confirmationCount).to.be.at.least(1);
+    expect(res.getBody().data.occurrence.priorityScore).to.be.within(0, 100);
+  });
+}

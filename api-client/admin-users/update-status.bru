@@ -1,0 +1,25 @@
+meta {
+  name: Update User Status
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/admin/users/{{userId}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+body:json {
+  { "status": "ACTIVE" }
+}
+
+tests {
+  test("altera o status", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

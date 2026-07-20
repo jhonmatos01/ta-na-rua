@@ -1,0 +1,22 @@
+meta {
+  name: Dashboard - By Neighborhood
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/dashboard/by-neighborhood?categoryId={{categoryId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+tests {
+  test("retorna bairros filtrados", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.neighborhoods).to.be.an("array");
+  });
+}

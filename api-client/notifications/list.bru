@@ -1,0 +1,22 @@
+meta {
+  name: Notifications - List
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/notifications?page=1&limit=20&unreadOnly=false
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+tests {
+  test("lista somente notificacoes do usuario autenticado", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.notifications).to.be.an("array");
+  });
+}

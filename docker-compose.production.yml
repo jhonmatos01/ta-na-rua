@@ -1,0 +1,101 @@
+x-api-environment: &api-environment
+  NODE_ENV: production
+  PORT: 3333
+  DATABASE_URL: ${DATABASE_URL:?Defina DATABASE_URL com o host postgres}
+  CORS_ORIGIN: ${CORS_ORIGIN:?Defina CORS_ORIGIN}
+  TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
+  JSON_BODY_LIMIT: ${JSON_BODY_LIMIT:-1mb}
+  API_RATE_LIMIT_MAX: ${API_RATE_LIMIT_MAX:-300}
+  API_RATE_LIMIT_WINDOW_SECONDS: ${API_RATE_LIMIT_WINDOW_SECONDS:-60}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Defina JWT_ACCESS_SECRET}
+  JWT_ISSUER: ${JWT_ISSUER:-ta-na-rua-api}
+  JWT_AUDIENCE: ${JWT_AUDIENCE:-ta-na-rua-web}
+  AI_SERVICE_URL: ${AI_SERVICE_URL:?Defina AI_SERVICE_URL}
+  AI_SERVICE_SECRET: ${AI_SERVICE_SECRET:?Defina AI_SERVICE_SECRET}
+  TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?Defina TELEGRAM_WEBHOOK_SECRET}
+  WHATSAPP_WEBHOOK_SECRET: ${WHATSAPP_WEBHOOK_SECRET:?Defina WHATSAPP_WEBHOOK_SECRET}
+  N8N_WEBHOOK_SECRET: ${N8N_WEBHOOK_SECRET:?Defina N8N_WEBHOOK_SECRET}
+  N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:?Defina N8N_WEBHOOK_URL}
+  STORAGE_PROVIDER: s3
+  STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:?Defina STORAGE_PUBLIC_BASE_URL}
+  STORAGE_BUCKET: ${STORAGE_BUCKET:?Defina STORAGE_BUCKET}
+  STORAGE_REGION: ${STORAGE_REGION:-us-east-1}
+  STORAGE_ENDPOINT: ${STORAGE_ENDPOINT:-}
+  STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY:?Defina STORAGE_ACCESS_KEY}
+  STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY:?Defina STORAGE_SECRET_KEY}
+
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Defina POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?Defina POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD}
+    volumes:
+      - postgres_production_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks: [backend]
+    security_opt: [no-new-privileges:true]
+
+  migrate:
+    build:
+      context: .
+      target: runtime
+    image: ta-na-rua-api:${IMAGE_TAG:-local}
+    profiles: [operations]
+    command: ['node', 'dist/database/migrate.js']
+    environment: *api-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [backend]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  api:
+    build:
+      context: .
+      target: runtime
+    image: ta-na-rua-api:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    init: true
+    environment: *api-environment
+    ports:
+      - '${API_PORT:-3333}:3333'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3333/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks: [backend, egress]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+volumes:
+  postgres_production_data:
+
+networks:
+  backend:
+    internal: true
+  egress:

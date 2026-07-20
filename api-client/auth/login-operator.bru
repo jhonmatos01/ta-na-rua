@@ -1,0 +1,24 @@
+meta {
+  name: Login City Operator
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "bruno.operador@example.test",
+    "password": "Operador123!Fase2"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("operatorAccessToken", res.body.data.accessToken);
+  }
+}

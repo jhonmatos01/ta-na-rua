@@ -1,0 +1,22 @@
+meta {
+  name: Notifications - Read one
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/notifications/{{notificationId}}/read
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+tests {
+  test("marca a notificacao propria como lida", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.notification.readAt).to.be.a("string");
+  });
+}

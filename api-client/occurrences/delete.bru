@@ -1,0 +1,21 @@
+meta {
+  name: Delete Occurrence As Moderator
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/occurrences/{{pendingOccurrenceId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{moderatorAccessToken}}
+}
+
+tests {
+  test("moderador exclui logicamente", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

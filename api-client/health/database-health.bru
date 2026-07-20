@@ -1,0 +1,24 @@
+meta {
+  name: Database Health
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/health/database
+  body: none
+  auth: none
+}
+
+tests {
+  test("retorna HTTP 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("confirma PostgreSQL e PostGIS", function() {
+    const body = res.getBody();
+    expect(body.success).to.equal(true);
+    expect(body.data.status).to.equal("connected");
+    expect(body.data.postgisVersion).to.be.a("string");
+  });
+}

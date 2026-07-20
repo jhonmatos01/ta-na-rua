@@ -1,0 +1,22 @@
+meta {
+  name: Get Department
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/departments/{{departmentId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+tests {
+  test("consulta departamento municipal", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.department.id).to.equal(bru.getEnvVar("departmentId"));
+  });
+}

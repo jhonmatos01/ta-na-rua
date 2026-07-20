@@ -1,0 +1,22 @@
+meta {
+  name: Dashboard - By Category
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/dashboard/by-category
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+tests {
+  test("retorna categorias agregadas", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.categories).to.be.an("array");
+  });
+}

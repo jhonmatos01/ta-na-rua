@@ -1,0 +1,33 @@
+meta {
+  name: Login Citizen
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "ana.cidada@example.test",
+    "password": "Cidada123!Fase2"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("accessToken", res.body.data.accessToken);
+    bru.setEnvVar("citizenAccessToken", res.body.data.accessToken);
+  }
+}
+
+tests {
+  test("retorna access JWT sem refresh no corpo", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.accessToken).to.be.a("string");
+    expect(res.getBody().data.refreshToken).to.equal(undefined);
+  });
+}

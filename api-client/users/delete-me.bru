@@ -1,0 +1,21 @@
+meta {
+  name: Delete My Profile
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/users/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("realiza exclusao logica", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

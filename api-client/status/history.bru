@@ -1,0 +1,22 @@
+meta {
+  name: Occurrence Status History
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/occurrences/{{occurrenceId}}/status-history
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+tests {
+  test("retorna historico cronologico", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.history).to.be.an("array");
+  });
+}

@@ -1,0 +1,46 @@
+meta {
+  name: Webhooks - Telegram report
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/webhooks/telegram/report
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+script:pre-request {
+  const CryptoJS = require("crypto-js");
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const eventId = `bruno-telegram-${timestamp}`;
+  const body = JSON.stringify({
+    externalEventId: eventId,
+    eventType: "REPORT_RECEIVED",
+    occurredAt: new Date().toISOString(),
+    data: {
+      municipalityId: bru.getEnvVar("municipalityId"),
+      title: "Relato demonstrativo do Telegram",
+      description: "Evento normalizado pela colecao Bruno.",
+      latitude: -12.9941,
+      longitude: -38.459
+    }
+  });
+  const signature = CryptoJS.HmacSHA256(`${timestamp}.${body}`, bru.getEnvVar("telegramWebhookSecret")).toString(CryptoJS.enc.Hex);
+  req.setHeader("content-type", "application/json");
+  req.setHeader("x-webhook-id", eventId);
+  req.setHeader("x-webhook-timestamp", timestamp);
+  req.setHeader("x-webhook-signature", `sha256=${signature}`);
+  req.setBody(body);
+}
+
+tests {
+  test("aceita ou reconhece repeticao idempotente", function() {
+    expect([200, 202]).to.include(res.getStatus());
+    expect(res.getBody().data.accepted).to.equal(true);
+  });
+}

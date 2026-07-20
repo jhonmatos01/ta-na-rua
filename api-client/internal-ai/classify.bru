@@ -1,0 +1,30 @@
+meta {
+  name: Internal AI - Classify
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/internal/ai/classify
+  body: json
+  auth: none
+}
+
+headers {
+  x-ai-service-secret: {{aiServiceSecret}}
+}
+
+body:json {
+  {
+    "occurrenceId": "{{occurrenceId}}"
+  }
+}
+
+tests {
+  test("protege ou executa a classificacao interna", function() {
+    expect([200, 503]).to.include(res.getStatus());
+    if (res.getStatus() === 200) {
+      expect(res.getBody().data.analysis.requiresHumanReview).to.be.a("boolean");
+    }
+  });
+}

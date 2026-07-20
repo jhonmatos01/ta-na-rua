@@ -1,0 +1,27 @@
+meta {
+  name: Update Pending Occurrence
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/occurrences/{{pendingOccurrenceId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+body:json {
+  {
+    "title": "Validacao Bruno Fase 3 atualizada"
+  }
+}
+
+tests {
+  test("autor edita enquanto aguarda revisao", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

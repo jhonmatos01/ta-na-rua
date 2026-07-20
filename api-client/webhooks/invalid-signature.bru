@@ -1,0 +1,42 @@
+meta {
+  name: Webhooks - Invalid signature
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/v1/webhooks/telegram/report
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+script:pre-request {
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const eventId = `bruno-invalid-${timestamp}`;
+  req.setHeader("content-type", "application/json");
+  req.setHeader("x-webhook-id", eventId);
+  req.setHeader("x-webhook-timestamp", timestamp);
+  req.setHeader("x-webhook-signature", `sha256=${"0".repeat(64)}`);
+  req.setBody(JSON.stringify({
+    externalEventId: eventId,
+    eventType: "REPORT_RECEIVED",
+    occurredAt: new Date().toISOString(),
+    data: {
+      municipalityId: bru.getEnvVar("municipalityId"),
+      title: "Assinatura invalida",
+      latitude: -12.9941,
+      longitude: -38.459
+    }
+  }));
+}
+
+tests {
+  test("rejeita assinatura invalida", function() {
+    expect(res.getStatus()).to.equal(401);
+    expect(res.getBody().error.code).to.equal("INVALID_WEBHOOK_SIGNATURE");
+  });
+}

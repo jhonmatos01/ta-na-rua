@@ -1,0 +1,21 @@
+meta {
+  name: Get My Profile
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/users/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("retorna o perfil", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

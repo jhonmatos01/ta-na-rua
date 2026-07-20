@@ -1,0 +1,22 @@
+meta {
+  name: Notifications - Unread count
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/notifications/unread-count
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+tests {
+  test("retorna contador nao negativo", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.unreadCount).to.be.at.least(0);
+  });
+}

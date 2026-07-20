@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "Ta na Rua API",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

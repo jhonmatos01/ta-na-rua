@@ -1,0 +1,42 @@
+meta {
+  name: Webhooks - n8n callback
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/v1/webhooks/n8n/events
+  body: json
+  auth: none
+}
+
+body:json {
+  {}
+}
+
+script:pre-request {
+  const CryptoJS = require("crypto-js");
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const eventId = `bruno-n8n-${timestamp}`;
+  const body = JSON.stringify({
+    externalEventId: eventId,
+    eventType: "OUTBOX_DELIVERY_CALLBACK",
+    occurredAt: new Date().toISOString(),
+    data: {
+      outboxEventId: bru.getEnvVar("outboxEventId"),
+      deliveryStatus: "PROCESSED"
+    }
+  });
+  const signature = CryptoJS.HmacSHA256(`${timestamp}.${body}`, bru.getEnvVar("n8nWebhookSecret")).toString(CryptoJS.enc.Hex);
+  req.setHeader("content-type", "application/json");
+  req.setHeader("x-webhook-id", eventId);
+  req.setHeader("x-webhook-timestamp", timestamp);
+  req.setHeader("x-webhook-signature", `sha256=${signature}`);
+  req.setBody(body);
+}
+
+tests {
+  test("confirma entrega da outbox", function() {
+    expect([200, 202]).to.include(res.getStatus());
+  });
+}

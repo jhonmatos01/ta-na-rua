@@ -1,0 +1,31 @@
+meta {
+  name: Update My Evaluation
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/occurrences/{{evaluationOccurrenceId}}/evaluations/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+body:json {
+  {
+    "rating": 5,
+    "problemResolved": true,
+    "serviceQuality": 4,
+    "comment": "Avaliacao atualizada dentro da janela de sete dias."
+  }
+}
+
+tests {
+  test("atualiza a avaliacao do cidadao autenticado", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.evaluation.isMine).to.equal(true);
+  });
+}

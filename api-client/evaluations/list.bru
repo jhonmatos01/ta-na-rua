@@ -1,0 +1,23 @@
+meta {
+  name: List Evaluations
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/occurrences/{{evaluationOccurrenceId}}/evaluations?page=1&limit=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+tests {
+  test("lista avaliacoes sem identificar outros usuarios", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.evaluations).to.be.an("array");
+    expect(res.getBody().data.pagination.total).to.be.at.least(1);
+  });
+}

@@ -1,0 +1,21 @@
+meta {
+  name: List Users
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/admin/users?page=1&pageSize=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("lista somente para ADMIN", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

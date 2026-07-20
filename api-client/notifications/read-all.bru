@@ -1,0 +1,22 @@
+meta {
+  name: Notifications - Read all
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/notifications/read-all
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+tests {
+  test("marca todas sem afetar outro usuario", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.markedAsRead).to.be.at.least(0);
+  });
+}

@@ -1,0 +1,22 @@
+meta {
+  name: List Departments
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/departments?municipalityId={{municipalityId}}&active=true
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+tests {
+  test("lista somente departamentos permitidos", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.departments).to.be.an("array");
+  });
+}

@@ -1,0 +1,17 @@
+meta {
+  name: API Health
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("retorna HTTP 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

@@ -1,0 +1,45 @@
+meta {
+  name: Create Occurrence With Image
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/occurrences
+  body: multipart-form
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+body:multipart-form {
+  title: Validacao Bruno Fase 3
+  description: Ocorrencia local criada pela colecao Bruno
+  categoryId: 30000000-0000-4000-8000-000000000001
+  municipalityId: {{municipalityId}}
+  neighborhoodId: 20000000-0000-4000-8000-000000000001
+  neighborhoodText: Pituba
+  address: Rua Bruno, 123, complemento privado
+  latitude: -12.9777
+  longitude: -38.5016
+  locationAccuracy: 10
+  anonymousPublication: false
+  image: @file(../fixtures/occurrence-example.png)
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("pendingOccurrenceId", res.body.data.occurrence.id);
+  }
+}
+
+tests {
+  test("cria protocolo pendente com imagem", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().data.occurrence.protocol).to.match(/^TNR-\d{4}-\d{6}$/);
+    expect(res.getBody().data.occurrence.status).to.equal("PENDING_REVIEW");
+    expect(res.getBody().data.occurrence.images).to.have.length(1);
+  });
+}

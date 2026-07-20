@@ -1,0 +1,2 @@
+CREATE INDEX "occurrences_municipality_created_idx" ON "occurrences" USING btree ("municipality_id","created_at");--> statement-breakpoint
+CREATE INDEX "occurrences_resolution_idx" ON "occurrences" USING btree ("municipality_id","resolved_at");

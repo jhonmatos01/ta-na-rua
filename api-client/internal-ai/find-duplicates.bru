@@ -1,0 +1,30 @@
+meta {
+  name: Internal AI - Find Duplicates
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/internal/ai/find-duplicates
+  body: json
+  auth: none
+}
+
+headers {
+  x-ai-service-secret: {{aiServiceSecret}}
+}
+
+body:json {
+  {
+    "occurrenceId": "{{occurrenceId}}"
+  }
+}
+
+tests {
+  test("nunca decide a fusao automaticamente", function() {
+    expect([200, 503]).to.include(res.getStatus());
+    if (res.getStatus() === 200) {
+      expect(res.getBody().data.analysis).not.to.have.property("duplicateOfOccurrenceId");
+    }
+  });
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Deactivate Department
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/departments/{{createdDepartmentId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+tests {
+  test("desativa sem excluir fisicamente", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

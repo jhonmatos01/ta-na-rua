@@ -1,0 +1,35 @@
+meta {
+  name: Create Evaluation
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/occurrences/{{evaluationOccurrenceId}}/evaluations
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+body:json {
+  {
+    "rating": 2,
+    "problemResolved": false,
+    "serviceQuality": 3,
+    "comment": "O problema voltou depois do reparo."
+  }
+}
+
+tests {
+  test("cria uma avaliacao ou confirma a unicidade do seed", function() {
+    expect([201, 409]).to.include(res.getStatus());
+    if (res.getStatus() === 201) {
+      expect(res.getBody().data.evaluation.id).to.be.a("string");
+    } else {
+      expect(res.getBody().error.code).to.equal("EVALUATION_ALREADY_EXISTS");
+    }
+  });
+}

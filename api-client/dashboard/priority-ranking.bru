@@ -1,0 +1,23 @@
+meta {
+  name: Dashboard - Priority Ranking
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/v1/dashboard/priority-ranking?limit=10
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+tests {
+  test("retorna ranking limitado e sem dados pessoais", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.occurrences).to.be.an("array");
+    expect(res.getBody().data.limit).to.equal(10);
+  });
+}

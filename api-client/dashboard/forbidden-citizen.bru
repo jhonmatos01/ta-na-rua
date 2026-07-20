@@ -1,0 +1,22 @@
+meta {
+  name: Dashboard - Citizen Forbidden
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/v1/dashboard/summary
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+tests {
+  test("bloqueia o perfil cidadao", function() {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getBody().error.code).to.equal("FORBIDDEN");
+  });
+}

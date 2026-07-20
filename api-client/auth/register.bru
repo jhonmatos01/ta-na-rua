@@ -1,0 +1,28 @@
+meta {
+  name: Register Citizen
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Cidada Bruno",
+    "email": "cidada.bruno@example.test",
+    "phone": "(71) 99999-1010",
+    "password": "CidadaBruno123!",
+    "municipalityId": "{{municipalityId}}",
+    "neighborhood": "Pituba"
+  }
+}
+
+tests {
+  test("retorna HTTP 201 ou conflito idempotente", function() {
+    expect([201, 409]).to.include(res.getStatus());
+  });
+}

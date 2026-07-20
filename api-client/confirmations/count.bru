@@ -1,0 +1,20 @@
+meta {
+  name: Get Confirmation Count
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/occurrences/{{occurrenceId}}/confirmations/count
+  body: none
+  auth: none
+}
+
+tests {
+  test("retorna contador e prioridade publicos", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.confirmationCount).to.be.at.least(0);
+    expect(res.getBody().data.priorityScore).to.be.within(0, 100);
+    expect(res.getBody().data.confirmedByMe).to.equal(undefined);
+  });
+}

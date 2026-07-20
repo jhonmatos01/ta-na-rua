@@ -1,0 +1,32 @@
+meta {
+  name: Login Admin
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "adriano.admin@example.test",
+    "password": "Admin123!Fase2"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("accessToken", res.body.data.accessToken);
+    bru.setEnvVar("adminAccessToken", res.body.data.accessToken);
+  }
+}
+
+tests {
+  test("retorna ADMIN", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.user.role).to.equal("ADMIN");
+  });
+}

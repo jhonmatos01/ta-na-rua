@@ -1,0 +1,19 @@
+meta {
+  name: Evaluation Summary
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/occurrences/{{evaluationOccurrenceId}}/evaluations/summary
+  body: none
+  auth: none
+}
+
+tests {
+  test("retorna apenas indicadores agregados", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.summary.total).to.be.at.least(1);
+    expect(res.getBody().data.summary.negativePercentage).to.be.within(0, 100);
+  });
+}

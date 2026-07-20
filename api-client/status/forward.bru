@@ -1,0 +1,31 @@
+meta {
+  name: Forward Occurrence
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/occurrences/{{occurrenceId}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+body:json {
+  {
+    "status": "FORWARDED",
+    "departmentId": "{{departmentId}}",
+    "expectedResolutionAt": "2026-12-31T18:00:00.000Z",
+    "publicMessage": "A ocorrencia foi encaminhada para a equipe responsavel."
+  }
+}
+
+tests {
+  test("encaminha com departamento e previsao", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.occurrence.status).to.equal("FORWARDED");
+  });
+}

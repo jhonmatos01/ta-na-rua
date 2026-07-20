@@ -1,0 +1,21 @@
+meta {
+  name: Remove My Confirmation
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/occurrences/{{occurrenceId}}/confirmations/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+tests {
+  test("remove a confirmacao propria", function() {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

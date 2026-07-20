@@ -1,0 +1,21 @@
+meta {
+  name: Get User
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/admin/users/{{userId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminAccessToken}}
+}
+
+tests {
+  test("consulta o usuario", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

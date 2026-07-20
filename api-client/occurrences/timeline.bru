@@ -1,0 +1,22 @@
+meta {
+  name: Occurrence Timeline
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/v1/occurrences/{{pendingOccurrenceId}}/timeline
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+tests {
+  test("retorna historico inicial", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.timeline[0].newStatus).to.equal("PENDING_REVIEW");
+  });
+}

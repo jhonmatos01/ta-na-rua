@@ -1,0 +1,21 @@
+meta {
+  name: My Occurrences
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/v1/occurrences/mine?page=1&limit=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{citizenAccessToken}}
+}
+
+tests {
+  test("inclui ocorrencias proprias pendentes", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

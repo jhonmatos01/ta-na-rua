@@ -1,0 +1,19 @@
+meta {
+  name: List Public Occurrences
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/occurrences?municipalityId={{municipalityId}}&page=1&limit=20
+  body: none
+  auth: none
+}
+
+tests {
+  test("lista com paginacao no meta", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().meta.page).to.equal(1);
+    expect(res.getBody().data.occurrences).to.be.an("array");
+  });
+}

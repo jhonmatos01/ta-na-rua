@@ -1,0 +1,28 @@
+meta {
+  name: Set Department Active
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/departments/{{createdDepartmentId}}/active
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{operatorAccessToken}}
+}
+
+body:json {
+  {
+    "active": true
+  }
+}
+
+tests {
+  test("altera ativacao do departamento", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.department.active).to.equal(true);
+  });
+}

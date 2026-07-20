@@ -1,0 +1,18 @@
+meta {
+  name: Nearby Occurrences
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/occurrences/nearby?latitude={{latitude}}&longitude={{longitude}}&radius=50&page=1&limit=20
+  body: none
+  auth: none
+}
+
+tests {
+  test("retorna distancia PostGIS", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.occurrences[0].distanceMeters).to.be.a("number");
+  });
+}
