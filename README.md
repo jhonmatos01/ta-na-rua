@@ -1,10 +1,12 @@
-# Ta na Rua! - Back-end
+# Ta na Rua! — back-end e aplicativo cidadão
 
 API REST da plataforma de inteligencia urbana colaborativa **Ta na Rua!**, implementada a partir do PRD Tecnico Consolidado v1.2.
 
-Estado atual: **Fase 10 - implementacao e validacao tecnica concluidas; aguardando aprovacao final**. As Fases 0 a 9 foram concluidas e aprovadas. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
+Estado atual: **back-end MVP concluído e preservado; FE‑0 do aplicativo cidadão em validação final**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
 
 ## O que existe
+
+- aplicação cidadã responsiva em `apps/citizen-web`, com rotas iniciais, status real da API, acessibilidade e testes;
 
 - Node.js 24, TypeScript estrito e Express;
 - validacao de ambiente com Zod;
@@ -144,6 +146,7 @@ npm run dev
 | Servico      | Endereco                                |
 | ------------ | --------------------------------------- |
 | API          | http://localhost:3333                   |
+| App cidadão  | http://localhost:5173                   |
 | Swagger UI   | http://localhost:3333/docs              |
 | OpenAPI JSON | http://localhost:3333/docs/openapi.json |
 | Adminer      | http://localhost:8080                   |
@@ -151,11 +154,12 @@ npm run dev
 
 ### Interfaces visuais de teste
 
+- **Aplicativo cidadão FE‑0** em `http://localhost:5173`, com início, status dos serviços, indisponibilidade e 404. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
 - **Swagger UI** e a interface principal para testar a API: autentique com `Authorize`, preencha os formularios e execute cada rota, inclusive uploads de imagem.
 - **Adminer** permite inspecionar visualmente o PostgreSQL/PostGIS com os valores de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` do `.env` local.
 - A pasta `api-client` pode ser aberta no aplicativo **Bruno** para executar os cenarios agrupados por modulo.
 
-O escopo deste repositorio e o backend/API. Uma interface final de cidadao, operador e administrador nao faz parte do MVP implementado neste projeto.
+A FE‑0 não inclui ainda as jornadas finais de autenticação, mapa ou ocorrências, nem interfaces de operador e administrador. Consulte [docs/FE0_LIMITACOES.md](docs/FE0_LIMITACOES.md).
 
 ## Variaveis de ambiente da fase
 
@@ -438,6 +442,7 @@ tests/
 `-- integration/
 drizzle/
 api-client/
+apps/citizen-web/
 docs/
 Dockerfile
 docker-compose.production.yml
