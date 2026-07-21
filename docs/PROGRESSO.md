@@ -613,3 +613,31 @@ Estado: implementacao e validacao tecnica concluidas em 20 de julho de 2026; agu
 - Itens bloqueados: 0
 - Itens nao iniciados: 0
 - Progresso estimado: 98%
+
+## FE‑0 — Fundação do aplicativo cidadão
+
+Estado: implementação e validação técnica concluídas em 20 de julho de 2026; aguardando aprovação explícita do usuário.
+
+### Checklist do PRD de continuação
+
+- [x] Isolar a aplicação em `apps/citizen-web` e criar a branch `feature/citizen-foundation`.
+- [x] Configurar React, TypeScript estrito, Vite, Router, TanStack Query, Zod e Tailwind.
+- [x] Criar ambiente público validado, cliente HTTP central, timeout, cancelamento e erros seguros.
+- [x] Integrar os contratos reais de `/health` e `/health/database` sem alterar o back-end.
+- [x] Implementar layout responsivo e as rotas `/`, `/status`, `/indisponivel` e 404.
+- [x] Implementar link de salto, landmarks, foco visível, teclado e movimento reduzido.
+- [x] Preparar manifesto e identidade mínima para evolução PWA.
+- [x] Criar testes Vitest, Testing Library, MSW e Playwright.
+- [x] Aprovar lint, tipos, 29 testes, cobertura, build e 4 cenários E2E.
+- [x] Validar visualmente desktop e mobile com os serviços locais reais.
+- [x] Documentar execução, evidências, segurança e limitações.
+- [x] Aplicar a direção visual moderna aprovada à página inicial, ao status e ao design system, mantendo as jornadas futuras explicitamente como planejadas.
+- [~] Obter aprovação final do usuário.
+
+### Evidências
+
+- 29 testes Vitest aprovados; cobertura de 86,16% statements, 71,33% branches, 88,88% functions e 90,64% lines.
+- 4 cenários Playwright aprovados nos perfis desktop e mobile.
+- API e banco exibidos como disponíveis no navegador, sem erro de console ou rolagem horizontal em 390 × 844.
+- Direção visual consolidada em [DIRECAO_VISUAL_CIDADAO.md](DIRECAO_VISUAL_CIDADAO.md), com mapa-conceito não interativo e regras de privacidade/IA.
+- Relatório completo em [FE0_VALIDACAO.md](FE0_VALIDACAO.md) e limitações em [FE0_LIMITACOES.md](FE0_LIMITACOES.md).
