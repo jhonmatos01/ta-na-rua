@@ -40,4 +40,6 @@ As jornadas são ativadas somente quando sua fase funcional estiver implementada
 - marca, cabeçalho e rodapé atualizados;
 - página inicial modernizada com mapa-conceito acessível e não interativo;
 - página de status modernizada sem alterar os contratos `/health` e `/health/database`;
-- próximas jornadas apresentadas como `Planejado`, sem rotas ou ações falsas.
+- cadastro e login em composição dividida, com formulário claro e contexto de segurança;
+- perfil autenticado em cartões responsivos, com dados permitidos e estado da conta;
+- próximas jornadas ainda não implementadas apresentadas como `Planejado`, sem rotas ou ações falsas.

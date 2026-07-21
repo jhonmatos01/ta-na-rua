@@ -616,7 +616,7 @@ Estado: implementacao e validacao tecnica concluidas em 20 de julho de 2026; agu
 
 ## FE‑0 — Fundação do aplicativo cidadão
 
-Estado: implementação e validação técnica concluídas em 20 de julho de 2026; aguardando aprovação explícita do usuário.
+Estado: concluída e aprovada pelo usuário em 20 de julho de 2026; publicada para revisão no PR #1.
 
 ### Checklist do PRD de continuação
 
@@ -632,7 +632,8 @@ Estado: implementação e validação técnica concluídas em 20 de julho de 202
 - [x] Validar visualmente desktop e mobile com os serviços locais reais.
 - [x] Documentar execução, evidências, segurança e limitações.
 - [x] Aplicar a direção visual moderna aprovada à página inicial, ao status e ao design system, mantendo as jornadas futuras explicitamente como planejadas.
-- [~] Obter aprovação final do usuário.
+- [x] Obter aprovação final do usuário.
+  - Evidência: o usuário aprovou a FE‑0, autorizou sua publicação e autorizou o planejamento e a implementação da fase seguinte.
 
 ### Evidências
 
@@ -641,3 +642,31 @@ Estado: implementação e validação técnica concluídas em 20 de julho de 202
 - API e banco exibidos como disponíveis no navegador, sem erro de console ou rolagem horizontal em 390 × 844.
 - Direção visual consolidada em [DIRECAO_VISUAL_CIDADAO.md](DIRECAO_VISUAL_CIDADAO.md), com mapa-conceito não interativo e regras de privacidade/IA.
 - Relatório completo em [FE0_VALIDACAO.md](FE0_VALIDACAO.md) e limitações em [FE0_LIMITACOES.md](FE0_LIMITACOES.md).
+
+## FE‑1 — Autenticação e perfil cidadão
+
+Estado: implementação e validação técnica concluídas em 20 de julho de 2026; aguardando aprovação explícita do usuário.
+
+### Checklist do PRD de continuação
+
+- [x] Implementar cadastro cidadão com validação local e município definido pela implantação.
+- [x] Implementar login e mensagens seguras para credenciais inválidas, indisponibilidade e timeout.
+- [x] Recuperar a sessão pelo refresh token em cookie `httpOnly` sem persistir tokens no navegador.
+- [x] Manter o access token somente em memória e renovar uma única vez após HTTP 401.
+- [x] Implementar rota protegida `/perfil` com redirecionamento para `/entrar`.
+- [x] Consultar os dados da sessão e atualizar somente nome, telefone e bairro pelo contrato existente.
+- [x] Implementar logout remoto com encerramento local garantido mesmo se a API estiver indisponível.
+- [x] Preservar CORS, contratos e respostas da API sem alterar o back-end.
+- [x] Tratar HTTP 409, 401 e 422 sem exibir mensagens internas ou dados sensíveis.
+- [x] Validar teclado, labels, foco, contraste, desktop e largura móvel de 390 px.
+- [x] Aprovar lint, tipos, 40 testes, cobertura, build e 6 cenários E2E.
+- [x] Documentar configuração pública, segurança, contratos e roteiro manual.
+- [~] Obter aprovação final do usuário.
+
+### Evidências
+
+- 10 arquivos e 40 testes Vitest aprovados; cobertura de 89,86% statements, 76,51% branches, 92,39% functions e 92,21% lines.
+- 6 cenários Playwright aprovados em Chromium desktop e mobile, incluindo cadastro, login, perfil e logout.
+- Login, cadastro e perfil inspecionados no navegador com API local; sem erro de console ou rolagem horizontal.
+- Refresh token mantido exclusivamente em cookie `httpOnly`; access token mantido em memória e removido no logout.
+- Relatório completo em [FE1_VALIDACAO.md](FE1_VALIDACAO.md).

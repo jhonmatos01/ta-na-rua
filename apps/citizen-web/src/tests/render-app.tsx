@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { appRoutes } from '../router';
+import { AuthProvider } from '../features/auth/auth-context';
 
 export function renderApp(initialEntry = '/') {
   const queryClient = new QueryClient({
@@ -14,7 +15,9 @@ export function renderApp(initialEntry = '/') {
 
   const result = render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </QueryClientProvider>,
   );
 

@@ -10,6 +10,9 @@ const environmentSchema = z.object({
   VITE_ENABLE_API_STATUS: booleanString,
   VITE_ENABLE_DATABASE_STATUS: booleanString,
   VITE_ENABLE_DEVTOOLS: booleanString,
+  VITE_DEFAULT_MUNICIPALITY_ID: z.uuid(),
+  VITE_DEFAULT_MUNICIPALITY_NAME: z.string().trim().min(2).max(150),
+  VITE_PASSWORD_MIN_LENGTH: z.coerce.number().int().min(8).max(128),
 });
 
 export interface AppEnvironment {
@@ -20,6 +23,9 @@ export interface AppEnvironment {
   enableApiStatus: boolean;
   enableDatabaseStatus: boolean;
   enableDevtools: boolean;
+  defaultMunicipalityId: string;
+  defaultMunicipalityName: string;
+  passwordMinLength: number;
 }
 
 export function parseEnvironment(source: Record<string, unknown>): AppEnvironment {
@@ -40,6 +46,9 @@ export function parseEnvironment(source: Record<string, unknown>): AppEnvironmen
     enableApiStatus: result.data.VITE_ENABLE_API_STATUS,
     enableDatabaseStatus: result.data.VITE_ENABLE_DATABASE_STATUS,
     enableDevtools: result.data.VITE_ENABLE_DEVTOOLS,
+    defaultMunicipalityId: result.data.VITE_DEFAULT_MUNICIPALITY_ID,
+    defaultMunicipalityName: result.data.VITE_DEFAULT_MUNICIPALITY_NAME,
+    passwordMinLength: result.data.VITE_PASSWORD_MIN_LENGTH,
   };
 }
 

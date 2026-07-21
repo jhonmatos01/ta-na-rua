@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { CityMapPreview } from '../components/city-map-preview';
 import { StatusBadge, type ServiceState } from '../components/status-badge';
 import { env } from '../config/env';
+import { useAuth } from '../features/auth/auth-context';
 import { useApiHealth } from '../features/status/health-queries';
 import { getSafeErrorMessage } from '../lib/api-error';
 
@@ -74,6 +75,7 @@ const journeys = [
 ];
 
 export function HomePage() {
+  const auth = useAuth();
   const apiHealth = useApiHealth();
   const serviceState = getState(env.enableApiStatus, apiHealth.isPending, apiHealth.isError);
 
@@ -92,22 +94,22 @@ export function HomePage() {
           <div className="relative z-10 min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-brand-700">
               <span className="size-2 rounded-full bg-brand-600" aria-hidden="true" />
-              Fundação do aplicativo cidadão
+              FE‑1 · Conta cidadã
             </p>
             <h1 className="mt-6 max-w-2xl text-5xl font-black leading-[1.03] tracking-[-0.055em] text-ink sm:text-6xl">
               Sua cidade. <span className="text-brand-600">Mais próxima.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
-              A base do Tá na Rua! conecta tecnologia, transparência e participação para tornar o
-              cuidado com a cidade mais simples.
+              Crie sua conta com segurança e prepare-se para acompanhar e participar do cuidado com
+              a cidade em um só lugar.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                to="/status"
+                to={auth.status === 'authenticated' ? '/perfil' : '/criar-conta'}
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-extrabold text-white shadow-brand transition hover:-translate-y-0.5 hover:bg-brand-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
               >
-                Ver status dos serviços
+                {auth.status === 'authenticated' ? 'Abrir meu perfil' : 'Criar conta cidadã'}
                 <svg
                   viewBox="0 0 24 24"
                   className="size-4"
@@ -119,14 +121,12 @@ export function HomePage() {
                   <path d="m9 18 6-6-6-6" />
                 </svg>
               </Link>
-              <a
-                href={`${env.apiBaseUrl}/docs`}
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                to={auth.status === 'authenticated' ? '/status' : '/entrar'}
                 className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-extrabold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:bg-brand-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
               >
-                Documentação da API <span className="sr-only">(abre em nova aba)</span>
-              </a>
+                {auth.status === 'authenticated' ? 'Ver status dos serviços' : 'Já tenho conta'}
+              </Link>
             </div>
 
             <aside

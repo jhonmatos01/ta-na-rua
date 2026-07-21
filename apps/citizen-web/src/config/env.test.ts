@@ -10,6 +10,9 @@ const validEnvironment = {
   VITE_ENABLE_API_STATUS: 'true',
   VITE_ENABLE_DATABASE_STATUS: 'false',
   VITE_ENABLE_DEVTOOLS: 'false',
+  VITE_DEFAULT_MUNICIPALITY_ID: '10000000-0000-4000-8000-000000000001',
+  VITE_DEFAULT_MUNICIPALITY_NAME: 'Salvador - BA',
+  VITE_PASSWORD_MIN_LENGTH: '12',
 };
 
 describe('parseEnvironment', () => {
@@ -22,6 +25,9 @@ describe('parseEnvironment', () => {
       enableApiStatus: true,
       enableDatabaseStatus: false,
       enableDevtools: false,
+      defaultMunicipalityId: '10000000-0000-4000-8000-000000000001',
+      defaultMunicipalityName: 'Salvador - BA',
+      passwordMinLength: 12,
     });
   });
 

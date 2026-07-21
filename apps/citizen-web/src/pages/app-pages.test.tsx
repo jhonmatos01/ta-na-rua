@@ -18,9 +18,10 @@ describe('páginas públicas', () => {
     expect(screen.getByRole('figure', { name: /conceito visual/i })).toBeInTheDocument();
     expect(screen.getAllByText('Planejado')).toHaveLength(3);
     expect(await screen.findByText('Disponível')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /entrar|relatar ocorrência/i }),
-    ).not.toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: /criar conta cidadã/i })).toHaveAttribute(
+      'href',
+      '/criar-conta',
+    );
   });
 
   it('permite navegar por teclado até a página de status', async () => {
@@ -29,7 +30,6 @@ describe('páginas públicas', () => {
 
     await user.tab();
     expect(screen.getByRole('link', { name: /ir para o conteúdo/i })).toHaveFocus();
-    await user.tab();
     await user.tab();
     await user.tab();
     expect(screen.getByRole('link', { name: 'Status' })).toHaveFocus();
