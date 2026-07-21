@@ -2,11 +2,11 @@
 
 API REST da plataforma de inteligencia urbana colaborativa **Ta na Rua!**, implementada a partir do PRD Tecnico Consolidado v1.2.
 
-Estado atual: **back-end MVP concluído e preservado; FE‑0 do aplicativo cidadão em validação final**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
+Estado atual: **back-end MVP concluído e preservado; FE‑0 publicada para revisão e FE‑1 do aplicativo cidadão em validação final**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
 
 ## O que existe
 
-- aplicação cidadã responsiva em `apps/citizen-web`, com rotas iniciais, status real da API, acessibilidade e testes;
+- aplicação cidadã responsiva em `apps/citizen-web`, com status real da API, cadastro, login, sessão segura, perfil, acessibilidade e testes;
 
 - Node.js 24, TypeScript estrito e Express;
 - validacao de ambiente com Zod;
@@ -154,12 +154,12 @@ npm run dev
 
 ### Interfaces visuais de teste
 
-- **Aplicativo cidadão FE‑0** em `http://localhost:5173`, com início, status dos serviços, indisponibilidade e 404. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
+- **Aplicativo cidadão FE‑1** em `http://localhost:5173`, com início, status dos serviços, cadastro, login, perfil protegido, logout, indisponibilidade e 404. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
 - **Swagger UI** e a interface principal para testar a API: autentique com `Authorize`, preencha os formularios e execute cada rota, inclusive uploads de imagem.
 - **Adminer** permite inspecionar visualmente o PostgreSQL/PostGIS com os valores de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` do `.env` local.
 - A pasta `api-client` pode ser aberta no aplicativo **Bruno** para executar os cenarios agrupados por modulo.
 
-A FE‑0 não inclui ainda as jornadas finais de autenticação, mapa ou ocorrências, nem interfaces de operador e administrador. Consulte [docs/FE0_LIMITACOES.md](docs/FE0_LIMITACOES.md).
+A FE‑1 não inclui ainda mapa, registro e acompanhamento de ocorrências, notificações nem interfaces de operador e administrador. Consulte [docs/FE1_VALIDACAO.md](docs/FE1_VALIDACAO.md).
 
 ## Variaveis de ambiente da fase
 

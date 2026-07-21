@@ -3,6 +3,16 @@ import { http, HttpResponse } from 'msw';
 import { env } from '../config/env';
 
 export const handlers = [
+  http.post(`${env.apiBaseUrl}/api/v1/auth/refresh`, () =>
+    HttpResponse.json(
+      {
+        success: false,
+        error: { code: 'REFRESH_TOKEN_REQUIRED', message: 'Sessão não encontrada.' },
+        meta: { requestId: 'test-refresh-request' },
+      },
+      { status: 401 },
+    ),
+  ),
   http.get(`${env.apiBaseUrl}/health`, () =>
     HttpResponse.json({
       success: true,

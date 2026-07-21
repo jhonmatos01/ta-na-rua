@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { env } from '../config/env';
 import { ApiError, type ApiErrorCode } from './api-error';
+import { getAccessToken, refreshAccessToken } from './auth-session';
 
 const apiFailureSchema = z.object({
   success: z.literal(false),
@@ -24,6 +25,8 @@ interface RequestOptions<TSchema extends z.ZodType> {
   body?: BodyInit | Record<string, unknown>;
   signal?: AbortSignal;
   schema: TSchema;
+  auth?: boolean;
+  retryUnauthorized?: boolean;
 }
 
 function codeForStatus(status: number): ApiErrorCode {
@@ -31,6 +34,7 @@ function codeForStatus(status: number): ApiErrorCode {
   if (status === 401) return 'UNAUTHORIZED';
   if (status === 403) return 'FORBIDDEN';
   if (status === 404) return 'NOT_FOUND';
+  if (status === 409) return 'CONFLICT';
   if (status >= 500) return 'SERVER_ERROR';
   return 'UNKNOWN';
 }
@@ -73,11 +77,13 @@ export async function apiRequest<TSchema extends z.ZodType>(
   const abortFromCaller = (): void => controller.abort();
   options.signal?.addEventListener('abort', abortFromCaller, { once: true });
 
-  try {
+  async function execute(canRetryUnauthorized: boolean): Promise<z.output<TSchema>> {
     const body = prepareBody(options.body);
     const headers = new Headers(options.headers);
     headers.set('Accept', 'application/json');
     headers.set('X-Request-ID', globalThis.crypto.randomUUID());
+    const accessToken = options.auth ? getAccessToken() : null;
+    if (accessToken !== null) headers.set('Authorization', `Bearer ${accessToken}`);
     if (body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
       headers.set('Content-Type', 'application/json');
     }
@@ -103,6 +109,16 @@ export async function apiRequest<TSchema extends z.ZodType>(
       });
     }
 
+    if (
+      response.status === 401 &&
+      options.auth === true &&
+      options.retryUnauthorized !== false &&
+      canRetryUnauthorized &&
+      (await refreshAccessToken()) !== null
+    ) {
+      return execute(false);
+    }
+
     if (!response.ok) {
       const failure = apiFailureSchema.safeParse(payload);
       throw new ApiError({
@@ -113,6 +129,7 @@ export async function apiRequest<TSchema extends z.ZodType>(
         status: response.status,
         requestId: failure.success ? failure.data.meta?.requestId : undefined,
         details: failure.success ? failure.data.error.details : undefined,
+        apiCode: failure.success ? failure.data.error.code : undefined,
       });
     }
 
@@ -127,6 +144,10 @@ export async function apiRequest<TSchema extends z.ZodType>(
     }
 
     return parsed.data;
+  }
+
+  try {
+    return await execute(true);
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error instanceof DOMException && error.name === 'AbortError') {
