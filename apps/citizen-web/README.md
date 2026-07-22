@@ -1,6 +1,6 @@
-# Tá na Rua! — aplicativo cidadão (FE‑2)
+# Tá na Rua! — aplicativo cidadão (FE‑3)
 
-Aplicação cidadã responsiva e acessível do projeto. A FE‑2 preserva autenticação e perfil da FE‑1 e acrescenta mapa público, agrupamentos, filtros, busca local e detalhes de ocorrências integrados à API existente.
+Aplicação cidadã responsiva e acessível do projeto. A FE‑3 preserva autenticação, perfil e mapa público das fases anteriores e acrescenta o registro guiado de ocorrências com foto, localização corrigível, endereço aproximado, revisão de candidatos próximos e envio multipart.
 
 ## Pré-requisitos
 
@@ -38,6 +38,7 @@ Abra [http://localhost:5173](http://localhost:5173). Use `localhost`, e não `12
 | `/entrar`                    | público     | login da conta cidadã                               |
 | `/criar-conta`               | público     | cadastro no município configurado                   |
 | `/perfil`                    | autenticado | consulta e atualização dos dados permitidos         |
+| `/nova-ocorrencia`           | autenticado | foto, localização, duplicidades, revisão e envio    |
 | `/mapa`                      | público     | mapa, filtros, busca e lista pública de ocorrências |
 | `/ocorrencias/:occurrenceId` | público     | detalhe e linha do tempo públicos da ocorrência     |
 | `/indisponivel`              | público     | mensagem segura para funcionalidades indisponíveis  |
@@ -59,6 +60,7 @@ Todas as variáveis `VITE_*` são incorporadas ao cliente e, portanto, devem ser
 | `VITE_DEFAULT_MUNICIPALITY_ID`   | município associado ao cadastro desta implantação |
 | `VITE_DEFAULT_MUNICIPALITY_NAME` | nome público do município exibido na interface    |
 | `VITE_PASSWORD_MIN_LENGTH`       | tamanho mínimo de senha alinhado ao back-end      |
+| `VITE_MAX_IMAGE_SIZE_MB`         | limite público validado antes do upload           |
 | `VITE_MAP_STYLE_URL`             | estilo viário público compatível com MapLibre     |
 | `VITE_MAP_DEFAULT_LATITUDE`      | latitude inicial pública do município             |
 | `VITE_MAP_DEFAULT_LONGITUDE`     | longitude inicial pública do município            |
@@ -88,7 +90,8 @@ src/
 |-- components/       componentes reutilizáveis e acessíveis
 |-- config/           validação do ambiente público com Zod
 |-- features/auth/    sessão, contratos e regras de autenticação
-|-- features/occurrences/ contratos, consultas e apresentação pública
+|-- features/geocoding/ endereço aproximado autenticado
+|-- features/occurrences/ contratos, mapa, duplicidades e registro
 |-- features/status/  contratos e consultas de saúde
 |-- layouts/          estrutura de navegação, conteúdo e rodapé
 |-- lib/              cliente HTTP, erros seguros e TanStack Query
@@ -106,10 +109,17 @@ O mapa usa `GET /api/v1/occurrences/map`; filtros e catálogo usam `GET /api/v1/
 
 O ambiente de desenvolvimento usa o estilo viário **Liberty**, fornecido pelo OpenFreeMap com dados do OpenStreetMap. Ele apresenta ruas, bairros e pontos de referência sem exigir chave no cliente. A URL continua externa e configurável por `VITE_MAP_STYLE_URL`, permitindo usar um provedor contratado ou uma infraestrutura própria no deploy de produção.
 
+O registro usa `GET /api/v1/occurrences/nearby` antes do envio e deixa o raio padrão sob controle do back-end. Um candidato pode receber a confirmação autenticada por `POST /api/v1/occurrences/:id/confirmations`; a criação de um problema diferente só é liberada após decisão explícita. O envio final usa `POST /api/v1/occurrences` com `multipart/form-data`, imagem inicial obrigatória e botão bloqueado enquanto a requisição está em andamento.
+
+Ao solicitar a localização ou acionar **Buscar endereço deste ponto**, o aplicativo envia a coordenada em um `POST` autenticado para `/api/v1/geocoding/reverse`. A API consulta o provedor configurado, aplica cache e limites e devolve somente rua, bairro e demais campos sanitizados. Depois de mover o marcador, a pessoa precisa atualizar o endereço explicitamente. A atribuição do provedor permanece visível e o resultado é sempre apresentado como aproximado.
+
+Como não existe endpoint público de metadados, a lista opcional de categorias é derivada do catálogo público carregado. Se o catálogo estiver indisponível ou não representar todas as categorias, a pessoa pode continuar sem selecionar e deixar a análise do back-end sugerir a classificação. Nenhum contrato da API foi alterado para contornar essa limitação.
+
 ## Escopo e evidências
 
 - [Direção visual do aplicativo cidadão](../../docs/DIRECAO_VISUAL_CIDADAO.md)
 - [Relatório de validação FE‑1](../../docs/FE1_VALIDACAO.md)
 - [Relatório de validação FE‑2](../../docs/FE2_VALIDACAO.md)
+- [Relatório de validação FE‑3](../../docs/FE3_VALIDACAO.md)
 - [Relatório de validação FE‑0](../../docs/FE0_VALIDACAO.md)
 - [Limitações conhecidas FE‑0](../../docs/FE0_LIMITACOES.md)

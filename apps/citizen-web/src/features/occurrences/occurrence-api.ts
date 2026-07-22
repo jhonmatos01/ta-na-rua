@@ -1,17 +1,24 @@
 import { env } from '../../config/env';
 import { apiRequest } from '../../lib/http-client';
 import {
+  confirmationResponseSchema,
+  createOccurrenceResponseSchema,
   occurrenceDetailResponseSchema,
   occurrenceListResponseSchema,
   occurrenceMapResponseSchema,
   occurrenceTimelineResponseSchema,
   type OccurrenceStatus,
 } from './occurrence-contracts';
+import type { ReportDetails, ReportLocation } from './report-form-schema';
 
 export interface OccurrenceFilters {
   category?: string;
   neighborhood?: string;
   status?: OccurrenceStatus;
+}
+
+export interface CreateOccurrenceInput extends ReportDetails, ReportLocation {
+  anonymousPublication: boolean;
 }
 
 export async function getPublicOccurrences(filters: OccurrenceFilters, signal?: AbortSignal) {
@@ -70,6 +77,61 @@ export async function getPublicOccurrenceTimeline(occurrenceId: string, signal?:
     schema: occurrenceTimelineResponseSchema,
   });
   return response.data.timeline;
+}
+
+export async function getNearbyOccurrences(
+  location: Pick<ReportLocation, 'latitude' | 'longitude'>,
+  signal?: AbortSignal,
+) {
+  const response = await apiRequest('/api/v1/occurrences/nearby', {
+    query: {
+      municipalityId: env.defaultMunicipalityId,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      page: 1,
+      limit: 5,
+    },
+    signal,
+    schema: occurrenceListResponseSchema,
+  });
+  return response.data.occurrences;
+}
+
+export async function createOccurrence(input: CreateOccurrenceInput, signal?: AbortSignal) {
+  const body = new FormData();
+  body.set('title', input.title);
+  if (input.description) body.set('description', input.description);
+  if (input.categoryId) body.set('categoryId', input.categoryId);
+  body.set('municipalityId', env.defaultMunicipalityId);
+  if (input.neighborhoodText) body.set('neighborhoodText', input.neighborhoodText);
+  if (input.address) body.set('address', input.address);
+  body.set('latitude', String(input.latitude));
+  body.set('longitude', String(input.longitude));
+  if (input.locationAccuracy !== undefined) {
+    body.set('locationAccuracy', String(input.locationAccuracy));
+  }
+  body.set('anonymousPublication', String(input.anonymousPublication));
+  body.set('image', input.image, input.image.name);
+
+  const response = await apiRequest('/api/v1/occurrences', {
+    method: 'POST',
+    body,
+    signal,
+    schema: createOccurrenceResponseSchema,
+    auth: true,
+  });
+  return response.data.occurrence;
+}
+
+export async function confirmExistingOccurrence(occurrenceId: string, signal?: AbortSignal) {
+  const response = await apiRequest(`/api/v1/occurrences/${occurrenceId}/confirmations`, {
+    method: 'POST',
+    body: { directlyAffected: false, problemWorsened: false },
+    signal,
+    schema: confirmationResponseSchema,
+    auth: true,
+  });
+  return response.data;
 }
 
 export function resolveApiAssetUrl(value: string): string | null {

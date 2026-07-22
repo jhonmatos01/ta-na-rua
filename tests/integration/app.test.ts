@@ -154,7 +154,7 @@ describe('aplicacao HTTP', () => {
 
     expect(specification.openapi).toBe('3.0.3');
     expect(specification.info.version).toBe('1.0.0');
-    expect(Object.keys(specification.paths)).toHaveLength(51);
+    expect(Object.keys(specification.paths)).toHaveLength(52);
     expect(specification.paths).toHaveProperty('/health');
     expect(specification.paths).toHaveProperty('/health/database');
     expect(specification.paths).toHaveProperty('/api/v1/occurrences/{occurrenceId}/status');

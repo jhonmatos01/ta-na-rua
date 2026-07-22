@@ -16,6 +16,11 @@ describe('parseEnvironment', () => {
       JSON_BODY_LIMIT: '1mb',
       API_RATE_LIMIT_MAX: 300,
       API_RATE_LIMIT_WINDOW_SECONDS: 60,
+      GEOCODING_PROVIDER_NAME: 'OpenStreetMap',
+      GEOCODING_TIMEOUT_MS: 5_000,
+      GEOCODING_CACHE_TTL_SECONDS: 86_400,
+      GEOCODING_MIN_INTERVAL_MS: 1_000,
+      GEOCODING_RATE_LIMIT_MAX: 10,
       LOG_LEVEL: 'info',
       MAX_IMAGES_PER_OCCURRENCE: 5,
       MAX_IMAGE_SIZE_MB: 8,
@@ -152,6 +157,27 @@ describe('parseEnvironment', () => {
         STORAGE_PUBLIC_BASE_URL: 'https://cdn.example.test',
       }).STORAGE_PROVIDER,
     ).toBe('s3');
+  });
+
+  it('exige HTTPS e impede o Nominatim publico quando configurado em producao', () => {
+    const productionBase = {
+      DATABASE_URL: 'postgresql://user:password@localhost:5432/tanarua',
+      NODE_ENV: 'production',
+      CORS_ORIGIN: 'https://app.example.test',
+      JWT_ACCESS_SECRET: 'production-secret-with-at-least-thirty-two-characters',
+    };
+    expect(() =>
+      parseEnvironment({
+        ...productionBase,
+        GEOCODING_PROVIDER_URL: 'http://geo.example.test/reverse',
+      }),
+    ).toThrowError(/GEOCODING_PROVIDER_URL deve usar HTTPS/u);
+    expect(() =>
+      parseEnvironment({
+        ...productionBase,
+        GEOCODING_PROVIDER_URL: 'https://nominatim.openstreetmap.org/reverse',
+      }),
+    ).toThrowError(/instancia dedicada/u);
   });
 
   it('rejeita porta e URL de banco invalidas sem exibir os valores recebidos', () => {

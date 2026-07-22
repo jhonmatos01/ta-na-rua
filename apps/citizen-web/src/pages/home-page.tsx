@@ -94,14 +94,14 @@ export function HomePage() {
           <div className="relative z-10 min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-brand-700">
               <span className="size-2 rounded-full bg-brand-600" aria-hidden="true" />
-              FE‑2 · Mapa público
+              FE‑3 · Registro cidadão
             </p>
             <h1 className="mt-6 max-w-2xl text-5xl font-black leading-[1.03] tracking-[-0.055em] text-ink sm:text-6xl">
               Sua cidade. <span className="text-brand-600">Mais próxima.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600">
-              Explore problemas reais, filtre por região e acompanhe cada atualização sem expor
-              dados pessoais.
+              Explore problemas reais e, com uma conta cidadã, registre uma nova ocorrência com foto
+              e localização revisada.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -122,10 +122,10 @@ export function HomePage() {
                 </svg>
               </Link>
               <Link
-                to={auth.status === 'authenticated' ? '/perfil' : '/criar-conta'}
+                to={auth.status === 'authenticated' ? '/nova-ocorrencia' : '/criar-conta'}
                 className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-extrabold text-ink shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:bg-brand-50 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
               >
-                {auth.status === 'authenticated' ? 'Abrir meu perfil' : 'Criar conta cidadã'}
+                {auth.status === 'authenticated' ? 'Registrar um problema' : 'Criar conta cidadã'}
               </Link>
             </div>
 

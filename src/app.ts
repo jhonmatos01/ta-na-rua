@@ -29,6 +29,10 @@ import {
   type EvaluationsRouterOptions,
 } from './modules/evaluations/evaluations.routes.js';
 import {
+  createGeocodingRouter,
+  type GeocodingRouterOptions,
+} from './modules/geocoding/geocoding.routes.js';
+import {
   createOccurrencesRouter,
   type OccurrencesRouterOptions,
 } from './modules/occurrences/occurrences.routes.js';
@@ -77,6 +81,8 @@ export interface AppOptions {
   aiService?: AiRouterOptions['service'];
   notificationsService?: NotificationsRouterOptions['service'];
   webhooksService?: WebhooksRouterOptions['service'];
+  geocodingService?: GeocodingRouterOptions['service'];
+  geocodingRateLimiter?: GeocodingRouterOptions['rateLimiter'];
 }
 
 export function createApp(options: AppOptions = {}): Express {
@@ -149,6 +155,18 @@ export function createApp(options: AppOptions = {}): Express {
     ...(options.authService === undefined ? {} : { service: options.authService }),
   };
   app.use('/api/v1/auth', createAuthRouter(authOptions));
+  app.use(
+    '/api/v1/geocoding',
+    createGeocodingRouter({
+      ...(options.identityRepository === undefined
+        ? {}
+        : { identityRepository: options.identityRepository }),
+      ...(options.geocodingService === undefined ? {} : { service: options.geocodingService }),
+      ...(options.geocodingRateLimiter === undefined
+        ? {}
+        : { rateLimiter: options.geocodingRateLimiter }),
+    }),
+  );
   const usersOptions: UsersRouterOptions = {
     ...(options.identityRepository === undefined ? {} : { repository: options.identityRepository }),
     ...(options.usersService === undefined ? {} : { service: options.usersService }),

@@ -2,11 +2,11 @@
 
 API REST da plataforma de inteligencia urbana colaborativa **Ta na Rua!**, implementada a partir do PRD Tecnico Consolidado v1.2.
 
-Estado atual: **back-end MVP concluído e preservado; FE‑0 e FE‑1 publicadas para revisão; FE‑2 do aplicativo cidadão em validação final**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
+Estado atual: **back-end MVP concluído e preservado; FE‑0, FE‑1 e FE‑2 publicadas para revisão; FE‑3 do aplicativo cidadão aprovada e publicada na branch de desenvolvimento**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
 
 ## O que existe
 
-- aplicação cidadã responsiva em `apps/citizen-web`, com status real da API, cadastro, login, sessão segura, perfil, mapa público, filtros, detalhes, acessibilidade e testes;
+- aplicação cidadã responsiva em `apps/citizen-web`, com status real da API, cadastro, login, sessão segura, perfil, mapa público, filtros, detalhes, registro guiado com foto e localização, revisão de duplicidades, acessibilidade e testes;
 
 - Node.js 24, TypeScript estrito e Express;
 - validacao de ambiente com Zod;
@@ -154,12 +154,12 @@ npm run dev
 
 ### Interfaces visuais de teste
 
-- **Aplicativo cidadão FE‑2** em `http://localhost:5173`, com início, status, autenticação, perfil, mapa público, filtros e detalhes de ocorrências. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
+- **Aplicativo cidadão FE‑3** em `http://localhost:5173`, com início, autenticação, mapa público, detalhes e registro de ocorrências com foto, ponto corrigível, endereço aproximado e revisão de duplicidades. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
 - **Swagger UI** e a interface principal para testar a API: autentique com `Authorize`, preencha os formularios e execute cada rota, inclusive uploads de imagem.
 - **Adminer** permite inspecionar visualmente o PostgreSQL/PostGIS com os valores de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` do `.env` local.
 - A pasta `api-client` pode ser aberta no aplicativo **Bruno** para executar os cenarios agrupados por modulo.
 
-A FE‑2 ainda não inclui registro e acompanhamento das próprias ocorrências, confirmação de duplicidade, notificações nem interfaces de operador e administrador. Consulte [docs/FE2_VALIDACAO.md](docs/FE2_VALIDACAO.md).
+A FE‑3 ainda não inclui a tela geral de confirmações comunitárias, acompanhamento das próprias ocorrências, notificações nem interfaces de operador e administrador. Consulte [docs/FE3_VALIDACAO.md](docs/FE3_VALIDACAO.md).
 
 ## Variaveis de ambiente da fase
 
@@ -173,6 +173,17 @@ A FE‑2 ainda não inclui registro e acompanhamento das próprias ocorrências,
 | `JSON_BODY_LIMIT`                       | Nao           | Limite do corpo JSON                        |
 | `API_RATE_LIMIT_MAX`                    | Nao           | Requisicoes por origem; padrao 300          |
 | `API_RATE_LIMIT_WINDOW_SECONDS`         | Nao           | Janela global; padrao 60 segundos           |
+| `GEOCODING_PROVIDER_URL`                | Sim em prod   | Endpoint Nominatim compativel e dedicado    |
+| `GEOCODING_PROVIDER_NAME`               | Nao           | Nome publico exibido na atribuicao          |
+| `GEOCODING_ATTRIBUTION_TEXT`            | Nao           | Texto de atribuicao do provedor             |
+| `GEOCODING_ATTRIBUTION_URL`             | Nao           | Link publico da atribuicao                  |
+| `GEOCODING_USER_AGENT`                  | Nao           | Identificacao enviada ao provedor           |
+| `GEOCODING_TIMEOUT_MS`                  | Nao           | Timeout externo; padrao 5000 ms             |
+| `GEOCODING_CACHE_TTL_SECONDS`           | Nao           | Validade do cache; padrao 86400 s           |
+| `GEOCODING_CACHE_MAX_ENTRIES`           | Nao           | Limite do cache em memoria                  |
+| `GEOCODING_MIN_INTERVAL_MS`             | Nao           | Intervalo externo minimo; padrao 1000 ms    |
+| `GEOCODING_RATE_LIMIT_MAX`              | Nao           | Buscas autenticadas por usuario e janela    |
+| `GEOCODING_RATE_LIMIT_WINDOW_SECONDS`   | Nao           | Janela da busca; padrao 60 segundos         |
 | `LOG_LEVEL`                             | Nao           | Nivel dos logs Pino                         |
 | `JWT_ACCESS_SECRET`                     | Sim em prod   | Segredo do JWT, com ao menos 32 caracteres  |
 | `JWT_ISSUER`                            | Nao           | Emissor esperado no JWT                     |
@@ -221,7 +232,7 @@ A FE‑2 ainda não inclui registro e acompanhamento das próprias ocorrências,
 | `POSTGRES_PASSWORD`                     | Sim no Docker | Senha local do PostgreSQL                   |
 | `POSTGRES_PORT`                         | Nao           | Porta publicada pelo Docker                 |
 
-A API interrompe a inicializacao quando `DATABASE_URL`, `PORT` ou outra configuracao validada for invalida. Em producao, exige CORS HTTPS, storage S3, IA, n8n, segredos exclusivos e rejeita placeholders. Senhas, tokens, cookies, cabecalhos de autorizacao, `x-ai-service-secret`, `x-webhook-signature` e segredos de webhook sao removidos dos logs.
+A API interrompe a inicializacao quando `DATABASE_URL`, `PORT` ou outra configuracao validada for invalida. Em producao, exige CORS HTTPS, storage S3, IA, n8n, segredos exclusivos e rejeita placeholders; o Compose exige uma instancia Nominatim compativel dedicada e a configuracao rejeita o endpoint publico do Nominatim. Senhas, tokens, cookies, cabecalhos de autorizacao, `x-ai-service-secret`, `x-webhook-signature` e segredos de webhook sao removidos dos logs.
 
 ## Roteiro de validacao local
 

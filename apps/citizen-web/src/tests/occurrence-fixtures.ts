@@ -1,4 +1,5 @@
 import type {
+  CreatedOccurrence,
   MapPoint,
   PublicOccurrence,
   TimelineItem,
@@ -112,3 +113,18 @@ export const timelineFixtures: TimelineItem[] = [
     createdAt: '2026-07-20T18:30:00.000Z',
   },
 ];
+
+export const createdOccurrenceFixture: CreatedOccurrence = {
+  ...publicOccurrenceFixture,
+  id: '30000000-0000-4000-8000-000000000099',
+  protocol: 'TNR-2026-000099',
+  status: 'PENDING_REVIEW',
+  createdBy: '50000000-0000-4000-8000-000000000001',
+  location: {
+    latitude: -12.9714,
+    longitude: -38.5014,
+    accuracy: 12,
+    approximate: false,
+  },
+  nearbyCandidates: [],
+};

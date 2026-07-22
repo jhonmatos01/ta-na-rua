@@ -35,7 +35,16 @@ export const appRoutes: RouteObject[] = [
       { path: '/indisponivel', element: <UnavailablePage /> },
       {
         element: <ProtectedRoute />,
-        children: [{ path: '/perfil', element: <ProfilePage /> }],
+        children: [
+          { path: '/perfil', element: <ProfilePage /> },
+          {
+            path: '/nova-ocorrencia',
+            lazy: async () => {
+              const module = await import('./pages/new-occurrence-page');
+              return { Component: module.NewOccurrencePage };
+            },
+          },
+        ],
       },
       { path: '*', element: <NotFoundPage /> },
     ],

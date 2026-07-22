@@ -34,10 +34,10 @@ npm audit --omit=dev
 Resultados finais:
 
 - lint, build, `validate`, formatacao e configuracao do Compose de producao: codigo zero;
-- unitarios: 29 arquivos e 144 testes aprovados;
-- integracao: 9 arquivos e 55 testes aprovados;
-- total com cobertura: 38 arquivos e 199 testes aprovados;
-- cobertura: 89,10% statements, 83,31% branches, 91,32% functions e 90,85% lines;
+- unitarios: 30 arquivos e 149 testes aprovados;
+- integracao: 10 arquivos e 58 testes aprovados;
+- total com cobertura: 40 arquivos e 207 testes aprovados;
+- cobertura: 88,65% statements, 82,47% branches, 91,02% functions e 90,77% lines;
 - dependencias de producao: zero vulnerabilidades em `npm audit --omit=dev`;
 - quatro alertas moderados permanecem somente na cadeia de desenvolvimento do Drizzle Kit e estao documentados no relatorio de seguranca.
 
@@ -52,7 +52,7 @@ Resultados finais:
 
 Resultados manuais:
 
-- Swagger 1.0.0 inspecionado com 51 paths, 60 operacoes, JWT, exemplos, erros, HTTP 429 global e upload multipart binario;
+- Swagger 1.0.0 validado com 52 paths, 61 operacoes, JWT, exemplos, erros, HTTP 429 global e upload multipart binario;
 - Adminer acessado com usuario temporario somente de leitura; as 18 tabelas da aplicacao e os objetos PostGIS foram conferidos, e o usuario temporario foi removido;
 - Bruno CLI 3.5.2 executou as duas requisicoes de health e seus tres testes com sucesso, sem persistir tokens ou instalar dependencia no projeto;
 - fluxos HTTP reais confirmaram `200` para health, banco, OpenAPI, ocorrencias publicas e dashboard do operador; `401` sem autenticacao e para assinatura de webhook invalida; `403` para cidadao no dashboard e operador fora do municipio; `404` para rota ausente; `204` nos logouts;
