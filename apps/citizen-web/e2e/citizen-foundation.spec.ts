@@ -88,6 +88,21 @@ async function mockHealth(page: Page): Promise<void> {
       }),
     }),
   );
+  await page.route(/\/api\/v1\/occurrences\/[^/]+\/confirmations\/count$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          occurrenceId: publicOccurrenceFixture.id,
+          confirmationCount: 18,
+          priorityScore: 82.4,
+        },
+        meta: { requestId: 'e2e-confirmation-state' },
+      }),
+    }),
+  );
   await page.route(/\/api\/v1\/occurrences\/(?!map$)[^/?]+$/, (route) =>
     route.fulfill({
       status: 200,
@@ -150,6 +165,23 @@ test('navega da página inicial ao status dos serviços', async ({ page }) => {
   await expect(page).toHaveURL(/\/status$/);
   await expect(page.getByText('API respondendo normalmente.')).toBeVisible();
   await expect(page.getByText('Camada de dados respondendo normalmente.')).toBeVisible();
+});
+
+test('mantém o cabeçalho legível no celular', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto(`/ocorrencias/${publicOccurrenceFixture.id}`);
+
+  await expect(page.getByRole('link', { name: 'Abrir mapa público' })).toBeHidden();
+  await expect(page.getByRole('link', { name: 'Status' })).toBeHidden();
+  await expect(page.getByRole('link', { name: 'Entrar' })).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+
+  const headerItems = await page.locator('header').evaluate((header) => {
+    const brand = header.querySelector('a[href="/"]')?.getBoundingClientRect();
+    const navigation = header.querySelector('nav')?.getBoundingClientRect();
+    return { brandRight: brand?.right ?? 0, navigationLeft: navigation?.left ?? 0 };
+  });
+  expect(headerItems.brandRight).toBeLessThanOrEqual(headerItems.navigationLeft);
 });
 
 test('exibe a rota 404 com retorno seguro', async ({ page }) => {
@@ -345,4 +377,93 @@ test('registra uma ocorrência com foto, ponto revisado e prevenção de duplici
   await expect(page.getByText('TNR-2026-000099')).toBeVisible();
   await expectNoHorizontalOverflow(page);
   expect(submissions).toBe(1);
+});
+
+test('confirma e desfaz a confirmação comunitária com contador sincronizado', async ({ page }) => {
+  let confirmed = false;
+  let refreshCalls = 0;
+  await page.route('**/api/v1/auth/refresh', (route) => {
+    refreshCalls += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          accessToken: 'e2e-access-token',
+          tokenType: 'Bearer',
+          expiresIn: 900,
+          user: e2eUser,
+        },
+        meta: { requestId: 'e2e-community-session' },
+      }),
+    });
+  });
+  await page.route(/\/api\/v1\/occurrences\/[^/]+\/confirmations\/count$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          occurrenceId: publicOccurrenceFixture.id,
+          confirmationCount: confirmed ? 19 : 18,
+          priorityScore: confirmed ? 83.1 : 82.4,
+          confirmedByMe: confirmed,
+        },
+        meta: { requestId: 'e2e-community-state' },
+      }),
+    }),
+  );
+  await page.route(/\/api\/v1\/occurrences\/[^/]+\/confirmations$/, (route) => {
+    confirmed = true;
+    return route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          confirmation: {
+            id: '41000000-0000-4000-8000-000000000001',
+            occurrenceId: publicOccurrenceFixture.id,
+            directlyAffected: false,
+            problemWorsened: false,
+            comment: null,
+            createdAt: '2026-07-22T12:00:00.000Z',
+            updatedAt: '2026-07-22T12:00:00.000Z',
+          },
+          occurrence: { confirmationCount: 19, priorityScore: 83.1 },
+        },
+        meta: { requestId: 'e2e-community-created' },
+      }),
+    });
+  });
+  await page.route(/\/api\/v1\/occurrences\/[^/]+\/confirmations\/me$/, (route) => {
+    confirmed = false;
+    return route.fulfill({ status: 204, body: '' });
+  });
+
+  await page.goto(`/ocorrencias/${publicOccurrenceFixture.id}`);
+  await expectNoHorizontalOverflow(page);
+  const community = page.getByRole('region', { name: /você também viu este problema/i });
+  await expect(community.getByRole('button', { name: 'Eu também vi' })).toBeVisible();
+  expect(refreshCalls).toBe(1);
+
+  await page.reload();
+  await expect(community.getByRole('button', { name: 'Eu também vi' })).toBeVisible();
+  expect(refreshCalls).toBe(2);
+
+  await community.getByRole('button', { name: 'Eu também vi' }).click();
+  await expect(
+    community.getByRole('button', { name: /desfazer minha confirmação/i }),
+  ).toHaveAttribute('aria-pressed', 'true');
+  await expect(community.getByText('19')).toBeVisible();
+
+  await community.getByRole('button', { name: /desfazer minha confirmação/i }).click();
+  await expect(community.getByRole('button', { name: 'Eu também vi' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  await expect(community.getByText('18')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
 });

@@ -740,3 +740,33 @@ Estado: implementação e validação técnica concluídas em 21 de julho de 202
 - Candidatos recebidos pelo contrato público sanitizado; confirmação existente protegida pela unicidade transacional do back-end.
 - Relatório completo em [FE3_VALIDACAO.md](FE3_VALIDACAO.md).
 - Validação visual, commit e publicação da FE‑3 aprovados explicitamente pelo usuário em 22 de julho de 2026.
+
+## FE‑4 — Comunidade
+
+Estado: implementação e validação técnica concluídas em 22 de julho de 2026; aguardando validação visual e aprovação explícita do usuário.
+
+### Checklist do PRD de continuação
+
+- [x] Implementar **Eu também vi** somente para sessão cidadã.
+- [x] Permitir remover a própria confirmação.
+- [x] Consultar contador, prioridade e estado pessoal pelo contrato oficial.
+- [x] Sincronizar os caches de confirmação, detalhes, lista e mapa após mutações.
+- [x] Tratar confirmação duplicada, status não confirmável e remoção já efetivada.
+- [x] Preservar e exibir a linha do tempo pública com estados independentes.
+- [x] Implementar compartilhamento nativo, cópia e fallback manual somente com dados públicos.
+- [x] Preservar privacidade, autorização e regras de negócio no back-end.
+- [x] Validar teclado, labels, mensagens vivas, desktop, mobile e ausência de rolagem horizontal.
+- [x] Retornar à ocorrência após o login, preservar a sessão no recarregamento e corrigir o cabeçalho móvel.
+- [x] Aprovar 73 testes, cobertura e 14 cenários E2E.
+- [x] Documentar contratos, limites, segurança e roteiro manual.
+- [~] Obter validação visual e aprovação final do usuário.
+
+### Evidências
+
+- 19 arquivos e 73 testes Vitest aprovados; cobertura de 76,33% statements, 74,93% branches, 77,89% functions e 77,80% lines.
+- 14 cenários Playwright aprovados em Chromium desktop e mobile, incluindo confirmação, remoção, recarga autenticada e cabeçalho móvel sem sobreposição.
+- `GET confirmations/count` usa autenticação opcional; `POST` e `DELETE` permanecem autenticados e exclusivos de `CITIZEN`.
+- HTTP 409 duplicado e HTTP 404 de remoção já efetivada provocam reconsulta, sem duplicar regras de status no navegador.
+- Compartilhamento limitado ao título e à URL pública, com Web Share API, clipboard e fallback selecionável.
+- Nenhuma alteração de back-end, banco, migration, formato de token ou contrato da API.
+- Relatório completo em [FE4_VALIDACAO.md](FE4_VALIDACAO.md).

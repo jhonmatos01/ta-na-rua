@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type PropsWithChildren,
 } from 'react';
@@ -37,6 +38,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: PropsWithChildren) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<AuthUser | null>(null);
+  const sessionRecoveryPromise = useRef<ReturnType<typeof refreshSession> | null>(null);
 
   const applySession = useCallback((accessToken: string, sessionUser: AuthUser) => {
     setAccessToken(accessToken);
@@ -54,7 +56,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
     let cancelled = false;
     const recover = async (): Promise<string | null> => {
       try {
-        const response = await refreshSession();
+        sessionRecoveryPromise.current ??= refreshSession().finally(() => {
+          sessionRecoveryPromise.current = null;
+        });
+        const response = await sessionRecoveryPromise.current;
         if (cancelled) return null;
         applySession(response.data.accessToken, response.data.user);
         return response.data.accessToken;

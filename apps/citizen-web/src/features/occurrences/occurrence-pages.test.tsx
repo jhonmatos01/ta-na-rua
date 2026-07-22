@@ -1,9 +1,10 @@
 import { http, HttpResponse } from 'msw';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { env } from '../../config/env';
+import { sessionFixture } from '../../tests/auth-fixtures';
 import { renderApp } from '../../tests/render-app';
 import { server } from '../../tests/server';
 
@@ -31,6 +32,28 @@ afterEach(() => {
 });
 
 describe('mapa público e detalhes', () => {
+  it('retorna à ocorrência depois do login iniciado pelo botão de confirmação', async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.post(`${env.apiBaseUrl}/api/v1/auth/login`, () => HttpResponse.json(sessionFixture())),
+    );
+    const occurrencePath = '/ocorrencias/30000000-0000-4000-8000-000000000001';
+    const { router } = renderApp(occurrencePath);
+
+    const community = await screen.findByRole(
+      'region',
+      { name: /você também viu este problema/i },
+      { timeout: 10_000 },
+    );
+    await user.click(within(community).getByRole('link', { name: /entre para confirmar/i }));
+    await user.type(screen.getByLabelText(/^E-mail/i), 'ana@example.test');
+    await user.type(screen.getByLabelText(/^Senha/i), 'SenhaForte123!');
+    await user.click(screen.getByRole('button', { name: /^entrar$/i }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe(occurrencePath));
+    expect(await screen.findByRole('button', { name: /eu também vi/i })).toBeInTheDocument();
+  });
+
   it('lista dados reais e abre os detalhes públicos pelo marcador', async () => {
     const user = userEvent.setup();
     renderApp('/mapa');
@@ -176,5 +199,205 @@ describe('mapa público e detalhes', () => {
       }),
     ).toBeInTheDocument();
     expect(screen.queryByText('internal database detail')).not.toBeInTheDocument();
+  });
+
+  it('sincroniza confirmação e remoção para uma sessão cidadã', async () => {
+    const user = userEvent.setup();
+    let confirmed = false;
+    server.use(
+      http.post(`${env.apiBaseUrl}/api/v1/auth/refresh`, () =>
+        HttpResponse.json({
+          success: true,
+          data: {
+            accessToken: 'citizen-access-token',
+            tokenType: 'Bearer',
+            expiresIn: 900,
+            user: {
+              id: '50000000-0000-4000-8000-000000000001',
+              name: 'Ana Cidadã',
+              email: 'ana@example.test',
+              phone: null,
+              role: 'CITIZEN',
+              municipalityId: env.defaultMunicipalityId,
+              neighborhood: 'Pituba',
+              avatarUrl: null,
+              status: 'ACTIVE',
+              emailVerifiedAt: null,
+              lastLoginAt: '2026-07-22T12:00:00.000Z',
+              createdAt: '2026-07-20T12:00:00.000Z',
+              updatedAt: '2026-07-22T12:00:00.000Z',
+              deletedAt: null,
+            },
+          },
+          meta: { requestId: 'community-session' },
+        }),
+      ),
+      http.get(
+        `${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/confirmations/count`,
+        ({ params }) =>
+          HttpResponse.json({
+            success: true,
+            data: {
+              occurrenceId: params.occurrenceId,
+              confirmationCount: confirmed ? 19 : 18,
+              priorityScore: confirmed ? 83.1 : 82.4,
+              confirmedByMe: confirmed,
+            },
+            meta: { requestId: 'community-state' },
+          }),
+      ),
+      http.post(
+        `${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/confirmations`,
+        ({ params }) => {
+          confirmed = true;
+          return HttpResponse.json(
+            {
+              success: true,
+              data: {
+                confirmation: {
+                  id: '41000000-0000-4000-8000-000000000001',
+                  occurrenceId: params.occurrenceId,
+                  directlyAffected: false,
+                  problemWorsened: false,
+                  comment: null,
+                  createdAt: '2026-07-22T12:00:00.000Z',
+                  updatedAt: '2026-07-22T12:00:00.000Z',
+                },
+                occurrence: { confirmationCount: 19, priorityScore: 83.1 },
+              },
+              meta: { requestId: 'community-created' },
+            },
+            { status: 201 },
+          );
+        },
+      ),
+      http.delete(`${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/confirmations/me`, () => {
+        confirmed = false;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+
+    renderApp('/ocorrencias/30000000-0000-4000-8000-000000000001');
+    const community = await screen.findByRole('region', { name: /você também viu este problema/i });
+    await user.click(within(community).getByRole('button', { name: 'Eu também vi' }));
+    expect(
+      await within(community).findByRole('button', { name: /desfazer minha confirmação/i }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    expect(within(community).getByText('19')).toBeInTheDocument();
+
+    await user.click(
+      within(community).getByRole('button', { name: /desfazer minha confirmação/i }),
+    );
+    expect(await within(community).findByRole('button', { name: 'Eu também vi' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(within(community).getByText('18')).toBeInTheDocument();
+  });
+
+  it('trata conflito de confirmação duplicada sem quebrar a tela', async () => {
+    const user = userEvent.setup();
+    let synchronized = false;
+    server.use(
+      http.post(`${env.apiBaseUrl}/api/v1/auth/refresh`, () =>
+        HttpResponse.json({
+          success: true,
+          data: {
+            accessToken: 'citizen-access-token',
+            tokenType: 'Bearer',
+            expiresIn: 900,
+            user: {
+              id: '50000000-0000-4000-8000-000000000001',
+              name: 'Ana Cidadã',
+              email: 'ana@example.test',
+              phone: null,
+              role: 'CITIZEN',
+              municipalityId: env.defaultMunicipalityId,
+              neighborhood: null,
+              avatarUrl: null,
+              status: 'ACTIVE',
+              emailVerifiedAt: null,
+              lastLoginAt: null,
+              createdAt: '2026-07-20T12:00:00.000Z',
+              updatedAt: '2026-07-22T12:00:00.000Z',
+              deletedAt: null,
+            },
+          },
+          meta: { requestId: 'duplicate-session' },
+        }),
+      ),
+      http.get(
+        `${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/confirmations/count`,
+        ({ params }) =>
+          HttpResponse.json({
+            success: true,
+            data: {
+              occurrenceId: params.occurrenceId,
+              confirmationCount: synchronized ? 19 : 18,
+              priorityScore: 83.1,
+              confirmedByMe: synchronized,
+            },
+            meta: { requestId: 'duplicate-state' },
+          }),
+      ),
+      http.post(`${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/confirmations`, () => {
+        synchronized = true;
+        return HttpResponse.json(
+          {
+            success: false,
+            error: {
+              code: 'CONFIRMATION_ALREADY_EXISTS',
+              message: 'Você já confirmou esta ocorrência.',
+            },
+            meta: { requestId: 'duplicate-confirmation' },
+          },
+          { status: 409 },
+        );
+      }),
+    );
+
+    renderApp('/ocorrencias/30000000-0000-4000-8000-000000000001');
+    const community = await screen.findByRole('region', { name: /você também viu este problema/i });
+    await user.click(within(community).getByRole('button', { name: 'Eu também vi' }));
+
+    expect(
+      await within(community).findByText(/sua confirmação já estava registrada/i),
+    ).toBeInTheDocument();
+    expect(
+      within(community).getByRole('button', { name: /desfazer minha confirmação/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('copia somente o link público quando o compartilhamento nativo não está disponível', async () => {
+    const user = userEvent.setup();
+    const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    const originalShare = Object.getOwnPropertyDescriptor(navigator, 'share');
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+
+    try {
+      renderApp('/ocorrencias/30000000-0000-4000-8000-000000000001');
+      const community = await screen.findByRole('region', {
+        name: /você também viu este problema/i,
+      });
+      await user.click(within(community).getByRole('button', { name: /compartilhar ocorrência/i }));
+
+      expect(writeText).toHaveBeenCalledWith(
+        'http://localhost:3000/ocorrencias/30000000-0000-4000-8000-000000000001',
+      );
+      expect(await within(community).findByText('Link público copiado.')).toBeInTheDocument();
+      expect(
+        within(community).getByRole('link', { name: /entre para confirmar/i }),
+      ).toHaveAttribute('href', '/entrar');
+    } finally {
+      if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard);
+      else Reflect.deleteProperty(navigator, 'clipboard');
+      if (originalShare) Object.defineProperty(navigator, 'share', originalShare);
+      else Reflect.deleteProperty(navigator, 'share');
+    }
   });
 });

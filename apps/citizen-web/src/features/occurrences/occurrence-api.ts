@@ -1,7 +1,7 @@
 import { env } from '../../config/env';
 import { apiRequest } from '../../lib/http-client';
+import { createConfirmation } from '../confirmations/confirmation-api';
 import {
-  confirmationResponseSchema,
   createOccurrenceResponseSchema,
   occurrenceDetailResponseSchema,
   occurrenceListResponseSchema,
@@ -124,14 +124,7 @@ export async function createOccurrence(input: CreateOccurrenceInput, signal?: Ab
 }
 
 export async function confirmExistingOccurrence(occurrenceId: string, signal?: AbortSignal) {
-  const response = await apiRequest(`/api/v1/occurrences/${occurrenceId}/confirmations`, {
-    method: 'POST',
-    body: { directlyAffected: false, problemWorsened: false },
-    signal,
-    schema: confirmationResponseSchema,
-    auth: true,
-  });
-  return response.data;
+  return createConfirmation(occurrenceId, {}, signal);
 }
 
 export function resolveApiAssetUrl(value: string): string | null {

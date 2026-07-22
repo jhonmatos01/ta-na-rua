@@ -1,6 +1,6 @@
-# Tá na Rua! — aplicativo cidadão (FE‑3)
+# Tá na Rua! — aplicativo cidadão (FE‑4)
 
-Aplicação cidadã responsiva e acessível do projeto. A FE‑3 preserva autenticação, perfil e mapa público das fases anteriores e acrescenta o registro guiado de ocorrências com foto, localização corrigível, endereço aproximado, revisão de candidatos próximos e envio multipart.
+Aplicação cidadã responsiva e acessível do projeto. A FE‑4 preserva o registro guiado da fase anterior e acrescenta confirmação comunitária, remoção da própria confirmação, contador sincronizado, compartilhamento público e acompanhamento pela linha do tempo.
 
 ## Pré-requisitos
 
@@ -17,6 +17,8 @@ Na raiz do repositório, inicie a API:
 npm run docker:up
 npm run dev
 ```
+
+Após reiniciar o computador, confirme primeiro que o Docker Desktop está aberto. O comando `npm run docker:up` inicia ou recupera PostgreSQL/PostGIS e Adminer; `npm run dev` mantém a API no terminal atual. Não feche esse terminal enquanto estiver testando.
 
 Em outro terminal:
 
@@ -113,6 +115,8 @@ O registro usa `GET /api/v1/occurrences/nearby` antes do envio e deixa o raio pa
 
 Ao solicitar a localização ou acionar **Buscar endereço deste ponto**, o aplicativo envia a coordenada em um `POST` autenticado para `/api/v1/geocoding/reverse`. A API consulta o provedor configurado, aplica cache e limites e devolve somente rua, bairro e demais campos sanitizados. Depois de mover o marcador, a pessoa precisa atualizar o endereço explicitamente. A atribuição do provedor permanece visível e o resultado é sempre apresentado como aproximado.
 
+Nos detalhes públicos, `GET /api/v1/occurrences/:id/confirmations/count` mantém contador e prioridade sincronizados. Uma sessão de cidadão também recebe `confirmedByMe` e pode usar `POST /api/v1/occurrences/:id/confirmations` ou `DELETE /api/v1/occurrences/:id/confirmations/me`. HTTP 409 e remoção já sincronizada são reconciliados sem quebrar a tela. O compartilhamento envia somente título e URL pública; quando a Web Share API não está disponível, o aplicativo copia o link ou o apresenta para cópia manual.
+
 Como não existe endpoint público de metadados, a lista opcional de categorias é derivada do catálogo público carregado. Se o catálogo estiver indisponível ou não representar todas as categorias, a pessoa pode continuar sem selecionar e deixar a análise do back-end sugerir a classificação. Nenhum contrato da API foi alterado para contornar essa limitação.
 
 ## Escopo e evidências
@@ -121,5 +125,6 @@ Como não existe endpoint público de metadados, a lista opcional de categorias 
 - [Relatório de validação FE‑1](../../docs/FE1_VALIDACAO.md)
 - [Relatório de validação FE‑2](../../docs/FE2_VALIDACAO.md)
 - [Relatório de validação FE‑3](../../docs/FE3_VALIDACAO.md)
+- [Relatório de validação FE‑4](../../docs/FE4_VALIDACAO.md)
 - [Relatório de validação FE‑0](../../docs/FE0_VALIDACAO.md)
 - [Limitações conhecidas FE‑0](../../docs/FE0_LIMITACOES.md)
