@@ -674,7 +674,7 @@ Estado: concluída e aprovada pelo usuário em 20 de julho de 2026; publicada pa
 
 ## FE‑2 — Mapa público
 
-Estado: implementação e validação técnica concluídas em 20 de julho de 2026; aguardando validação visual e aprovação explícita do usuário.
+Estado: concluída e aprovada pelo usuário em 21 de julho de 2026; publicada para revisão no PR #3.
 
 ### Checklist do PRD de continuação
 
@@ -691,7 +691,8 @@ Estado: implementação e validação técnica concluídas em 20 de julho de 202
 - [x] Validar teclado, labels, desktop, mobile e ausência de rolagem horizontal.
 - [x] Aprovar lint, tipos, 53 testes, cobertura, build e 8 cenários E2E.
 - [x] Documentar contratos, limites, privacidade e roteiro manual.
-- [~] Obter validação visual e aprovação final do usuário.
+- [x] Obter validação visual e aprovação final do usuário.
+  - Evidência: após validar o mapa viário detalhado com ruas e bairros, o usuário confirmou que estava tudo certo e autorizou os próximos passos; a entrega foi publicada no PR #3 a partir do commit `5437295`.
 
 ### Evidências
 
@@ -699,4 +700,5 @@ Estado: implementação e validação técnica concluídas em 20 de julho de 202
 - 8 cenários Playwright aprovados em Chromium desktop e mobile, incluindo mapa, busca e detalhes.
 - Respostas públicas validadas por Zod e chamadas do mapa/detalhes feitas sem credencial para preservar a sanitização pública.
 - Localização do navegador mantida somente em memória, com cenário automatizado de permissão negada e retorno ao município.
+- Branch `codex/citizen-public-map` publicada no PR [#3](https://github.com/jhonmatos01/ta-na-rua/pull/3), baseada na FE‑1 e sem alteração dos contratos do back-end.
 - Relatório completo em [FE2_VALIDACAO.md](FE2_VALIDACAO.md).

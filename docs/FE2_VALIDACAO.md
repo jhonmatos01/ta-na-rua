@@ -4,7 +4,7 @@ Data: 20 de julho de 2026.
 
 ## Resultado
 
-A FE‑2 implementa o mapa público do aplicativo cidadão sobre os contratos existentes do back-end. A entrega está tecnicamente concluída na branch local `codex/citizen-public-map` e aguarda validação visual e aprovação antes de commit ou publicação.
+A FE‑2 implementa o mapa público do aplicativo cidadão sobre os contratos existentes do back-end. A entrega foi validada visualmente e aprovada pelo usuário em 21 de julho de 2026, publicada na branch `codex/citizen-public-map` a partir do commit `5437295` e aberta para revisão no PR [#3](https://github.com/jhonmatos01/ta-na-rua/pull/3).
 
 ## Escopo entregue
 
