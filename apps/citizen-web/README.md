@@ -1,6 +1,6 @@
-# Tá na Rua! — aplicativo cidadão (FE‑1)
+# Tá na Rua! — aplicativo cidadão (FE‑2)
 
-Aplicação cidadã responsiva e acessível do projeto. A FE‑1 preserva a fundação técnica e visual da FE‑0 e acrescenta cadastro, login, recuperação segura de sessão, rotas protegidas, perfil editável e logout integrados à API existente.
+Aplicação cidadã responsiva e acessível do projeto. A FE‑2 preserva autenticação e perfil da FE‑1 e acrescenta mapa público, agrupamentos, filtros, busca local e detalhes de ocorrências integrados à API existente.
 
 ## Pré-requisitos
 
@@ -31,15 +31,17 @@ Abra [http://localhost:5173](http://localhost:5173). Use `localhost`, e não `12
 
 ## Rotas
 
-| Rota            | Acesso      | Finalidade                                         |
-| --------------- | ----------- | -------------------------------------------------- |
-| `/`             | público     | apresentação e resumo da saúde da API              |
-| `/status`       | público     | saúde pública da API e do banco de dados           |
-| `/entrar`       | público     | login da conta cidadã                              |
-| `/criar-conta`  | público     | cadastro no município configurado                  |
-| `/perfil`       | autenticado | consulta e atualização dos dados permitidos        |
-| `/indisponivel` | público     | mensagem segura para funcionalidades indisponíveis |
-| `*`             | público     | página 404                                         |
+| Rota                         | Acesso      | Finalidade                                          |
+| ---------------------------- | ----------- | --------------------------------------------------- |
+| `/`                          | público     | apresentação e resumo da saúde da API               |
+| `/status`                    | público     | saúde pública da API e do banco de dados            |
+| `/entrar`                    | público     | login da conta cidadã                               |
+| `/criar-conta`               | público     | cadastro no município configurado                   |
+| `/perfil`                    | autenticado | consulta e atualização dos dados permitidos         |
+| `/mapa`                      | público     | mapa, filtros, busca e lista pública de ocorrências |
+| `/ocorrencias/:occurrenceId` | público     | detalhe e linha do tempo públicos da ocorrência     |
+| `/indisponivel`              | público     | mensagem segura para funcionalidades indisponíveis  |
+| `*`                          | público     | página 404                                          |
 
 ## Configuração pública
 
@@ -57,6 +59,10 @@ Todas as variáveis `VITE_*` são incorporadas ao cliente e, portanto, devem ser
 | `VITE_DEFAULT_MUNICIPALITY_ID`   | município associado ao cadastro desta implantação |
 | `VITE_DEFAULT_MUNICIPALITY_NAME` | nome público do município exibido na interface    |
 | `VITE_PASSWORD_MIN_LENGTH`       | tamanho mínimo de senha alinhado ao back-end      |
+| `VITE_MAP_STYLE_URL`             | estilo viário público compatível com MapLibre     |
+| `VITE_MAP_DEFAULT_LATITUDE`      | latitude inicial pública do município             |
+| `VITE_MAP_DEFAULT_LONGITUDE`     | longitude inicial pública do município            |
+| `VITE_MAP_DEFAULT_ZOOM`          | aproximação inicial do mapa                       |
 
 A inicialização falha de forma explícita se uma variável obrigatória estiver ausente ou inválida. O arquivo `.env` local é ignorado pelo Git; somente `.env.example` é versionado.
 
@@ -82,6 +88,7 @@ src/
 |-- components/       componentes reutilizáveis e acessíveis
 |-- config/           validação do ambiente público com Zod
 |-- features/auth/    sessão, contratos e regras de autenticação
+|-- features/occurrences/ contratos, consultas e apresentação pública
 |-- features/status/  contratos e consultas de saúde
 |-- layouts/          estrutura de navegação, conteúdo e rodapé
 |-- lib/              cliente HTTP, erros seguros e TanStack Query
@@ -93,11 +100,16 @@ public/               manifesto e identidade mínima para preparação PWA
 
 O cliente HTTP adiciona request ID, timeout, cancelamento, cookie de sessão, access token em memória e validação Zod da resposta. Uma resposta 401 tenta uma única renovação compartilhada antes de encerrar a sessão. Senhas, access tokens e refresh tokens não são persistidos em `localStorage` ou `sessionStorage`; mensagens técnicas da API não são exibidas diretamente à pessoa usuária.
 
-O cadastro usa o município público configurado pela implantação. A FE‑1 não solicita que a pessoa usuária digite ou descubra um UUID e não cria um contrato de API inexistente para listar municípios.
+O cadastro usa o município público configurado pela implantação. A interface não solicita que a pessoa usuária digite ou descubra um UUID e não cria contratos de API inexistentes.
+
+O mapa usa `GET /api/v1/occurrences/map`; filtros e catálogo usam `GET /api/v1/occurrences`; detalhes e linha do tempo usam seus respectivos contratos públicos. Essas chamadas não enviam access token, preservando sempre a resposta pública sanitizada. Como a API atual não possui busca textual pública, a busca é aplicada sobre até 100 ocorrências carregadas e essa limitação é exibida na interface.
+
+O ambiente de desenvolvimento usa o estilo viário **Liberty**, fornecido pelo OpenFreeMap com dados do OpenStreetMap. Ele apresenta ruas, bairros e pontos de referência sem exigir chave no cliente. A URL continua externa e configurável por `VITE_MAP_STYLE_URL`, permitindo usar um provedor contratado ou uma infraestrutura própria no deploy de produção.
 
 ## Escopo e evidências
 
 - [Direção visual do aplicativo cidadão](../../docs/DIRECAO_VISUAL_CIDADAO.md)
 - [Relatório de validação FE‑1](../../docs/FE1_VALIDACAO.md)
+- [Relatório de validação FE‑2](../../docs/FE2_VALIDACAO.md)
 - [Relatório de validação FE‑0](../../docs/FE0_VALIDACAO.md)
 - [Limitações conhecidas FE‑0](../../docs/FE0_LIMITACOES.md)

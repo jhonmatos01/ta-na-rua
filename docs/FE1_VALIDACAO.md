@@ -4,7 +4,7 @@ Data: 20 de julho de 2026.
 
 ## Resultado
 
-A FE‑1 implementa a jornada de autenticação e perfil do aplicativo cidadão sem alterar contratos do back-end. A entrega está tecnicamente concluída na branch local `codex/citizen-auth-profile` e aguarda aprovação antes de commit ou publicação.
+A FE‑1 implementa a jornada de autenticação e perfil do aplicativo cidadão sem alterar contratos do back-end. A entrega foi aprovada pelo usuário, registrada no commit `0eac13f` e publicada para revisão no [PR #2](https://github.com/jhonmatos01/ta-na-rua/pull/2).
 
 ## Escopo entregue
 

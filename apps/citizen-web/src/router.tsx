@@ -17,6 +17,20 @@ export const appRoutes: RouteObject[] = [
       { path: '/', element: <HomePage /> },
       { path: '/entrar', element: <LoginPage /> },
       { path: '/criar-conta', element: <RegisterPage /> },
+      {
+        path: '/mapa',
+        lazy: async () => {
+          const module = await import('./pages/map-page');
+          return { Component: module.MapPage };
+        },
+      },
+      {
+        path: '/ocorrencias/:occurrenceId',
+        lazy: async () => {
+          const module = await import('./pages/occurrence-detail-page');
+          return { Component: module.OccurrenceDetailPage };
+        },
+      },
       { path: '/status', element: <StatusPage /> },
       { path: '/indisponivel', element: <UnavailablePage /> },
       {

@@ -645,7 +645,7 @@ Estado: concluída e aprovada pelo usuário em 20 de julho de 2026; publicada pa
 
 ## FE‑1 — Autenticação e perfil cidadão
 
-Estado: implementação e validação técnica concluídas em 20 de julho de 2026; aguardando aprovação explícita do usuário.
+Estado: concluída e aprovada pelo usuário em 20 de julho de 2026; publicada para revisão no PR #2.
 
 ### Checklist do PRD de continuação
 
@@ -661,7 +661,8 @@ Estado: implementação e validação técnica concluídas em 20 de julho de 202
 - [x] Validar teclado, labels, foco, contraste, desktop e largura móvel de 390 px.
 - [x] Aprovar lint, tipos, 40 testes, cobertura, build e 6 cenários E2E.
 - [x] Documentar configuração pública, segurança, contratos e roteiro manual.
-- [~] Obter aprovação final do usuário.
+- [x] Obter aprovação final do usuário.
+  - Evidência: o usuário aprovou a FE‑1 e autorizou sua publicação e a fase seguinte; a entrega foi publicada no PR #2 a partir do commit `0eac13f`.
 
 ### Evidências
 
@@ -670,3 +671,32 @@ Estado: implementação e validação técnica concluídas em 20 de julho de 202
 - Login, cadastro e perfil inspecionados no navegador com API local; sem erro de console ou rolagem horizontal.
 - Refresh token mantido exclusivamente em cookie `httpOnly`; access token mantido em memória e removido no logout.
 - Relatório completo em [FE1_VALIDACAO.md](FE1_VALIDACAO.md).
+
+## FE‑2 — Mapa público
+
+Estado: implementação e validação técnica concluídas em 20 de julho de 2026; aguardando validação visual e aprovação explícita do usuário.
+
+### Checklist do PRD de continuação
+
+- [x] Implementar mapa público com dados reais de `GET /api/v1/occurrences/map`.
+- [x] Implementar marcadores individuais e clusters por proximidade.
+- [x] Manter lista pública acessível como alternativa ao mapa visual.
+- [x] Implementar filtros por categoria, status e bairro usando os parâmetros suportados pela API.
+- [x] Implementar busca textual local sobre a janela pública carregada, documentando o limite do contrato atual.
+- [x] Solicitar localização do navegador somente sob ação explícita e sem enviá-la à API.
+- [x] Oferecer fallback manual quando a localização é negada ou indisponível.
+- [x] Implementar detalhes públicos com imagem, descrição, endereço aproximado, confirmações, status, prioridade e linha do tempo.
+- [x] Tratar carregamento, vazio, erro do mapa base, falha da API e ocorrência inexistente.
+- [x] Impedir exposição de autoria, coordenadas exatas e dados pessoais mesmo durante uma sessão autenticada.
+- [x] Validar teclado, labels, desktop, mobile e ausência de rolagem horizontal.
+- [x] Aprovar lint, tipos, 53 testes, cobertura, build e 8 cenários E2E.
+- [x] Documentar contratos, limites, privacidade e roteiro manual.
+- [~] Obter validação visual e aprovação final do usuário.
+
+### Evidências
+
+- 14 arquivos e 53 testes Vitest aprovados; cobertura de 80,40% statements, 74,50% branches, 82,28% functions e 81,86% lines.
+- 8 cenários Playwright aprovados em Chromium desktop e mobile, incluindo mapa, busca e detalhes.
+- Respostas públicas validadas por Zod e chamadas do mapa/detalhes feitas sem credencial para preservar a sanitização pública.
+- Localização do navegador mantida somente em memória, com cenário automatizado de permissão negada e retorno ao município.
+- Relatório completo em [FE2_VALIDACAO.md](FE2_VALIDACAO.md).

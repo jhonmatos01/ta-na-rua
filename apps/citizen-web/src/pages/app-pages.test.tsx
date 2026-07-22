@@ -18,9 +18,9 @@ describe('páginas públicas', () => {
     expect(screen.getByRole('figure', { name: /conceito visual/i })).toBeInTheDocument();
     expect(screen.getAllByText('Planejado')).toHaveLength(3);
     expect(await screen.findByText('Disponível')).toBeInTheDocument();
-    expect(await screen.findByRole('link', { name: /criar conta cidadã/i })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: /explorar mapa público/i })).toHaveAttribute(
       'href',
-      '/criar-conta',
+      '/mapa',
     );
   });
 
@@ -30,6 +30,7 @@ describe('páginas públicas', () => {
 
     await user.tab();
     expect(screen.getByRole('link', { name: /ir para o conteúdo/i })).toHaveFocus();
+    await user.tab();
     await user.tab();
     await user.tab();
     expect(screen.getByRole('link', { name: 'Status' })).toHaveFocus();

@@ -13,6 +13,10 @@ const validEnvironment = {
   VITE_DEFAULT_MUNICIPALITY_ID: '10000000-0000-4000-8000-000000000001',
   VITE_DEFAULT_MUNICIPALITY_NAME: 'Salvador - BA',
   VITE_PASSWORD_MIN_LENGTH: '12',
+  VITE_MAP_STYLE_URL: 'https://tiles.openfreemap.org/styles/liberty',
+  VITE_MAP_DEFAULT_LATITUDE: '-12.9714',
+  VITE_MAP_DEFAULT_LONGITUDE: '-38.5014',
+  VITE_MAP_DEFAULT_ZOOM: '11',
 };
 
 describe('parseEnvironment', () => {
@@ -28,6 +32,10 @@ describe('parseEnvironment', () => {
       defaultMunicipalityId: '10000000-0000-4000-8000-000000000001',
       defaultMunicipalityName: 'Salvador - BA',
       passwordMinLength: 12,
+      mapStyleUrl: 'https://tiles.openfreemap.org/styles/liberty',
+      defaultMapLatitude: -12.9714,
+      defaultMapLongitude: -38.5014,
+      defaultMapZoom: 11,
     });
   });
 

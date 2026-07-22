@@ -1,6 +1,20 @@
 import { expect, test, type Page } from '@playwright/test';
 
+import {
+  mapPointFixtures,
+  publicOccurrenceFixture,
+  secondPublicOccurrenceFixture,
+  timelineFixtures,
+} from '../src/tests/occurrence-fixtures';
+
 async function mockHealth(page: Page): Promise<void> {
+  await page.route('https://tiles.openfreemap.org/styles/liberty', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ version: 8, sources: {}, layers: [] }),
+    }),
+  );
   await page.route('**/health', (route) =>
     route.fulfill({
       status: 200,
@@ -32,6 +46,66 @@ async function mockHealth(page: Page): Promise<void> {
         error: { code: 'REFRESH_TOKEN_REQUIRED', message: 'Sessão não encontrada.' },
         meta: { requestId: 'e2e-refresh-request' },
       }),
+    }),
+  );
+  await page.route(/\/api\/v1\/occurrences(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { occurrences: [publicOccurrenceFixture, secondPublicOccurrenceFixture] },
+        meta: {
+          requestId: 'e2e-occurrences-request',
+          page: 1,
+          limit: 100,
+          total: 2,
+          totalPages: 1,
+        },
+      }),
+    }),
+  );
+  await page.route(/\/api\/v1\/occurrences\/map(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { points: mapPointFixtures },
+        meta: { requestId: 'e2e-map-request' },
+      }),
+    }),
+  );
+  await page.route(/\/api\/v1\/occurrences\/[^/]+\/timeline$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { timeline: timelineFixtures },
+        meta: { requestId: 'e2e-timeline-request' },
+      }),
+    }),
+  );
+  await page.route(/\/api\/v1\/occurrences\/(?!map$)[^/?]+$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { occurrence: publicOccurrenceFixture },
+        meta: { requestId: 'e2e-occurrence-request' },
+      }),
+    }),
+  );
+  await page.route('**/uploads/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'image/png',
+      body: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+        'base64',
+      ),
     }),
   );
 }
@@ -133,4 +207,30 @@ test('cadastra, entra, acessa o perfil e sai da conta', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Ana Cidadã' })).toBeVisible();
   await page.getByRole('button', { name: /sair da conta/i }).click();
   await expect(page).toHaveURL(/\/entrar$/);
+});
+
+test('explora o mapa público, busca e abre os detalhes', async ({ page }) => {
+  await page.goto('/mapa');
+  await expectNoHorizontalOverflow(page);
+  await expect(
+    page.getByRole('heading', { name: /o que está acontecendo na cidade/i }),
+  ).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Buraco na Rua das Flores')).toBeVisible();
+  await expect(page.getByLabel('Mapa interativo de ocorrências públicas')).toBeVisible();
+
+  await page.getByLabel('Buscar').fill('poste');
+  await page.getByRole('button', { name: 'Aplicar' }).click();
+  await expect(page).toHaveURL(/busca=poste/);
+  await expect(page.getByText('Poste apagado na avenida')).toBeVisible();
+  await expect(page.getByText('Buraco na Rua das Flores')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Limpar' }).click();
+  await page.getByRole('link', { name: /Buraco na Rua das Flores/ }).click();
+  await expect(page).toHaveURL(/\/ocorrencias\/30000000-0000-4000-8000-000000000001$/);
+  await expectNoHorizontalOverflow(page);
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Buraco na Rua das Flores' }),
+  ).toBeVisible();
+  await expect(page.getByText('Equipe responsável iniciou o atendimento.')).toBeVisible();
+  await expect(page.getByText(/não publica autoria, coordenadas exatas/i)).toBeVisible();
 });

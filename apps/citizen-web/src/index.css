@@ -83,6 +83,23 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+.maplibregl-map {
+  font-family: var(--font-sans);
+}
+
+.maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.maplibregl-ctrl button:focus-visible,
+.maplibregl-canvas:focus-visible {
+  outline: 3px solid #0969e8;
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

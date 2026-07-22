@@ -44,6 +44,20 @@ export function AppLayout() {
             aria-label="Navegação principal"
             className="flex min-w-0 items-center justify-end gap-1"
           >
+            <NavLink to="/mapa" className={navClass} aria-label="Abrir mapa público">
+              <svg
+                viewBox="0 0 24 24"
+                className="size-5 sm:mr-2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                aria-hidden="true"
+              >
+                <path d="m4 5 5-2 6 2 5-2v16l-5 2-6-2-5 2Z" />
+                <path d="M9 3v16M15 5v16" />
+              </svg>
+              <span className="hidden sm:inline">Mapa</span>
+            </NavLink>
             <NavLink
               to="/status"
               className={({ isActive }) => `${navClass({ isActive })} hidden md:inline-flex`}
@@ -135,8 +149,8 @@ export function AppLayout() {
             </div>
           </div>
           <div className="text-slate-500 sm:text-right">
-            <p>Versão {env.appVersion} · Fase FE‑1</p>
-            <p className="mt-1 text-xs">Autenticação e perfil integrados à API.</p>
+            <p>Versão {env.appVersion} · Fase FE‑2</p>
+            <p className="mt-1 text-xs">Mapa público e detalhes integrados à API.</p>
           </div>
         </div>
       </footer>
