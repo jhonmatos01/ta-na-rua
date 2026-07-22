@@ -9,6 +9,21 @@ import { server } from '../../tests/server';
 import { authUserFixture, sessionFixture } from '../../tests/auth-fixtures';
 
 describe('jornada de autenticação', () => {
+  it('faz apenas uma recuperação de sessão sob StrictMode', async () => {
+    let refreshCalls = 0;
+    server.use(
+      http.post(`${env.apiBaseUrl}/api/v1/auth/refresh`, () => {
+        refreshCalls += 1;
+        return HttpResponse.json(sessionFixture());
+      }),
+    );
+
+    renderApp('/perfil');
+
+    expect(await screen.findByRole('heading', { name: 'Ana Cidadã' })).toBeInTheDocument();
+    expect(refreshCalls).toBe(1);
+  });
+
   it('redireciona uma rota privada para o login', async () => {
     const { router } = renderApp('/perfil');
 

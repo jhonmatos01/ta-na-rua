@@ -17,6 +17,12 @@ interface LoginLocationState {
   registeredEmail?: string;
 }
 
+function safeDestination(requestedPath: string | undefined): string {
+  return requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
+    ? requestedPath
+    : '/perfil';
+}
+
 export function LoginPage() {
   const auth = useAuth();
   const location = useLocation();
@@ -25,8 +31,9 @@ export function LoginPage() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [requestError, setRequestError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const destination = safeDestination(state?.from);
 
-  if (auth.status === 'authenticated') return <Navigate to="/perfil" replace />;
+  if (auth.status === 'authenticated') return <Navigate to={destination} replace />;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -46,11 +53,6 @@ export function LoginPage() {
     setSubmitting(true);
     try {
       await auth.login(parsed.data);
-      const requestedPath = state?.from;
-      const destination =
-        requestedPath?.startsWith('/') && !requestedPath.startsWith('//')
-          ? requestedPath
-          : '/perfil';
       await navigate(destination, { replace: true });
     } catch (error) {
       setRequestError(getAuthErrorMessage(error));

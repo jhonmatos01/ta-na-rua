@@ -135,6 +135,24 @@ export const handlers = [
       { status: 201 },
     ),
   ),
+  http.delete(
+    `${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/confirmations/me`,
+    () => new HttpResponse(null, { status: 204 }),
+  ),
+  http.get(
+    `${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/confirmations/count`,
+    ({ params, request }) =>
+      HttpResponse.json({
+        success: true,
+        data: {
+          occurrenceId: params.occurrenceId,
+          confirmationCount: 18,
+          priorityScore: 82.4,
+          ...(request.headers.has('authorization') ? { confirmedByMe: false } : {}),
+        },
+        meta: { requestId: 'test-confirmation-state-request' },
+      }),
+  ),
   http.get(`${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/timeline`, () =>
     HttpResponse.json({
       success: true,

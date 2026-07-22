@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 
 import { Button } from '../components/button';
+import { OccurrenceCommunityCard } from '../components/occurrence-community-card';
 import { PublicOccurrenceImage } from '../components/public-occurrence-image';
 import { resolveApiAssetUrl } from '../features/occurrences/occurrence-api';
 import {
@@ -157,6 +158,13 @@ export function OccurrenceDetailPage() {
           </article>
         </div>
 
+        <OccurrenceCommunityCard
+          occurrenceId={occurrence.id}
+          occurrenceTitle={occurrence.title}
+          initialConfirmationCount={occurrence.confirmationCount}
+          initialPriorityScore={occurrence.priorityScore}
+        />
+
         <section
           className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-card sm:p-8"
           aria-labelledby="timeline-title"
@@ -213,7 +221,7 @@ export function OccurrenceDetailPage() {
 
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm leading-6 text-slate-600">
           Esta visualização não publica autoria, coordenadas exatas, motivo interno ou responsável
-          pela alteração. A confirmação comunitária será ativada em uma fase posterior.
+          pela alteração. A confirmação comunitária também preserva a identidade do cidadão.
         </div>
       </div>
     </section>

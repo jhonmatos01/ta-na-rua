@@ -124,26 +124,6 @@ export const createOccurrenceResponseSchema = z.object({
   meta: responseMetaSchema,
 });
 
-export const confirmationResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.object({
-    confirmation: z.object({
-      id: z.uuid(),
-      occurrenceId: z.uuid(),
-      directlyAffected: z.boolean(),
-      problemWorsened: z.boolean(),
-      comment: z.string().nullable(),
-      createdAt: z.iso.datetime(),
-      updatedAt: z.iso.datetime(),
-    }),
-    occurrence: z.object({
-      confirmationCount: z.number().int().nonnegative(),
-      priorityScore: z.number().min(0).max(100),
-    }),
-  }),
-  meta: responseMetaSchema,
-});
-
 export const timelineItemSchema = z.object({
   id: z.uuid(),
   previousStatus: occurrenceStatusSchema.nullable(),

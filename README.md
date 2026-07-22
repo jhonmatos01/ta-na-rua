@@ -2,11 +2,11 @@
 
 API REST da plataforma de inteligencia urbana colaborativa **Ta na Rua!**, implementada a partir do PRD Tecnico Consolidado v1.2.
 
-Estado atual: **back-end MVP concluído e preservado; FE‑0, FE‑1 e FE‑2 publicadas para revisão; FE‑3 do aplicativo cidadão aprovada e publicada na branch de desenvolvimento**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
+Estado atual: **back-end MVP concluído e preservado; FE‑0 a FE‑3 publicadas em PRs empilhados; FE‑4 Comunidade implementada e em validação final**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
 
 ## O que existe
 
-- aplicação cidadã responsiva em `apps/citizen-web`, com status real da API, cadastro, login, sessão segura, perfil, mapa público, filtros, detalhes, registro guiado com foto e localização, revisão de duplicidades, acessibilidade e testes;
+- aplicação cidadã responsiva em `apps/citizen-web`, com status real da API, cadastro, login, sessão segura, perfil, mapa público, filtros, detalhes, registro guiado, confirmação comunitária, compartilhamento, linha do tempo, acessibilidade e testes;
 
 - Node.js 24, TypeScript estrito e Express;
 - validacao de ambiente com Zod;
