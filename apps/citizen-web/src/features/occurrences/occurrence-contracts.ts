@@ -95,6 +95,55 @@ export const occurrenceDetailResponseSchema = z.object({
   meta: responseMetaSchema,
 });
 
+const detailedLocationSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  accuracy: z.number().nonnegative().nullable().optional(),
+  approximate: z.literal(false),
+});
+
+export const createdOccurrenceSchema = publicOccurrenceSchema.omit({ location: true }).extend({
+  createdBy: z.uuid(),
+  location: detailedLocationSchema,
+  nearbyCandidates: z
+    .array(
+      z.object({
+        id: z.uuid(),
+        protocol: z.string().min(1),
+        title: z.string().min(1),
+        status: occurrenceStatusSchema,
+      }),
+    )
+    .default([]),
+  aiAnalysis: z.unknown().optional(),
+});
+
+export const createOccurrenceResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.object({ occurrence: createdOccurrenceSchema }),
+  meta: responseMetaSchema,
+});
+
+export const confirmationResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    confirmation: z.object({
+      id: z.uuid(),
+      occurrenceId: z.uuid(),
+      directlyAffected: z.boolean(),
+      problemWorsened: z.boolean(),
+      comment: z.string().nullable(),
+      createdAt: z.iso.datetime(),
+      updatedAt: z.iso.datetime(),
+    }),
+    occurrence: z.object({
+      confirmationCount: z.number().int().nonnegative(),
+      priorityScore: z.number().min(0).max(100),
+    }),
+  }),
+  meta: responseMetaSchema,
+});
+
 export const timelineItemSchema = z.object({
   id: z.uuid(),
   previousStatus: occurrenceStatusSchema.nullable(),
@@ -112,5 +161,6 @@ export const occurrenceTimelineResponseSchema = z.object({
 export type OccurrenceStatus = z.infer<typeof occurrenceStatusSchema>;
 export type RiskLevel = z.infer<typeof riskLevelSchema>;
 export type PublicOccurrence = z.infer<typeof publicOccurrenceSchema>;
+export type CreatedOccurrence = z.infer<typeof createdOccurrenceSchema>;
 export type MapPoint = z.infer<typeof mapPointSchema>;
 export type TimelineItem = z.infer<typeof timelineItemSchema>;

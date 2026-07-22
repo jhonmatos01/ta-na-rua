@@ -239,6 +239,11 @@ const openApiBaseDocument = {
       description: 'Disponibilidade da API e de suas dependencias.',
     },
     { name: 'Auth', description: 'Cadastro, login e ciclo de vida das sessoes.' },
+    {
+      name: 'Geocoding',
+      description:
+        'Endereco aproximado por coordenadas, com autenticacao, cache e provedor configuravel.',
+    },
     { name: 'Users', description: 'Perfil autenticado e exclusao logica.' },
     { name: 'Admin Users', description: 'Gestao de usuarios exclusiva de ADMIN.' },
     {
@@ -305,6 +310,59 @@ const openApiBaseDocument = {
     schemas: {
       ResponseMeta: successMetaSchema,
       ErrorResponse: errorResponseSchema,
+      ReverseGeocodedAddress: {
+        type: 'object',
+        required: [
+          'street',
+          'houseNumber',
+          'streetAddress',
+          'neighborhood',
+          'city',
+          'state',
+          'postcode',
+          'countryCode',
+          'formattedAddress',
+          'provider',
+        ],
+        properties: {
+          street: { type: 'string', nullable: true },
+          houseNumber: { type: 'string', nullable: true },
+          streetAddress: { type: 'string', nullable: true },
+          neighborhood: { type: 'string', nullable: true },
+          city: { type: 'string', nullable: true },
+          state: { type: 'string', nullable: true },
+          postcode: { type: 'string', nullable: true },
+          countryCode: { type: 'string', nullable: true },
+          formattedAddress: { type: 'string' },
+          provider: {
+            type: 'object',
+            required: ['name', 'text', 'url'],
+            properties: {
+              name: { type: 'string' },
+              text: { type: 'string' },
+              url: { type: 'string', format: 'uri' },
+            },
+          },
+        },
+      },
+      ReverseGeocodingResponse: {
+        type: 'object',
+        required: ['success', 'data', 'meta'],
+        properties: {
+          success: { type: 'boolean', enum: [true] },
+          data: {
+            type: 'object',
+            required: ['address'],
+            properties: {
+              address: {
+                allOf: [{ $ref: '#/components/schemas/ReverseGeocodedAddress' }],
+                nullable: true,
+              },
+            },
+          },
+          meta: successMetaSchema,
+        },
+      },
       User: {
         type: 'object',
         required: ['id', 'name', 'email', 'role', 'status', 'createdAt', 'updatedAt'],
@@ -1566,6 +1624,47 @@ const openApiBaseDocument = {
           '403': errorResponse('Perfil sem permissao.'),
           '404': errorResponse('Usuario nao encontrado.'),
           '422': errorResponse('Alteracao invalida.'),
+        },
+      },
+    },
+    '/api/v1/geocoding/reverse': {
+      post: {
+        tags: ['Geocoding'],
+        summary: 'Busca um endereco aproximado para uma coordenada',
+        description:
+          'Recebe a coordenada no corpo para evitar exposicao na URL. A API autentica o usuario, limita requisicoes, consulta o provedor compativel com Nominatim e retorna apenas campos de endereco sanitizados. O resultado pode apontar para a via adequada mais proxima e deve ser confirmado no mapa.',
+        operationId: 'reverseGeocode',
+        security: bearerSecurity,
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                additionalProperties: false,
+                required: ['latitude', 'longitude'],
+                properties: {
+                  latitude: { type: 'number', minimum: -90, maximum: 90 },
+                  longitude: { type: 'number', minimum: -180, maximum: 180 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Endereco aproximado ou null quando nao ha resultado adequado.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ReverseGeocodingResponse' },
+              },
+            },
+          },
+          '401': errorResponse('Autenticacao obrigatoria.'),
+          '422': errorResponse('Coordenadas invalidas.'),
+          '429': errorResponse('Limite global ou especifico da busca excedido.'),
+          '503': errorResponse('Provedor nao configurado, indisponivel ou com resposta invalida.'),
+          '504': errorResponse('Tempo limite do provedor excedido.'),
         },
       },
     },

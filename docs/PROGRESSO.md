@@ -573,13 +573,13 @@ Estado: implementacao e validacao tecnica concluidas em 20 de julho de 2026; agu
 ### Checklist do PRD
 
 - [x] Executar todos os testes, cobertura e fluxos completos.
-  - Evidencia: 199 testes passaram; cobertura final de 89,10% statements, 83,31% branches, 91,32% functions e 90,85% lines.
+  - Evidencia: 207 testes passaram em 40 arquivos; cobertura final de 88,65% statements, 82,47% branches, 91,02% functions e 90,77% lines.
 - [x] Revisar modulos abaixo da meta.
   - Evidencia: o modulo de ocorrencias recebeu cobertura adicional e terminou com 88,92% statements, 87,75% branches, 90,90% functions e 90,76% lines; todas as metas globais foram superadas.
 - [x] Testar permissoes, isolamento, falhas externas, migrations e seeds em banco limpo.
   - Evidencia: testes automatizados e fluxos HTTP confirmaram autenticacao, perfis e municipio; uma base temporaria nova recebeu migrations e seed e foi removida com sucesso.
 - [x] Revisar todas as rotas, schemas, exemplos, codigos, autenticacao, multipart e erros no Swagger.
-  - Evidencia: OpenAPI 3.0.3 com 51 paths, 60 operacoes e operation IDs unicos foi validado por testes e pela interface Swagger, incluindo upload binario e HTTP 429.
+  - Evidencia: OpenAPI 3.0.3 com 52 paths, 61 operacoes e operation IDs unicos foi validado por testes, incluindo geocodificacao reversa, upload binario e HTTP 429.
 - [x] Revisar colecao, ambientes e remover tokens reais.
   - Evidencia: ambiente Bruno mantem tokens vazios e segredos ficticios; duas requisicoes e tres testes de health passaram no CLI 3.5.2.
 - [x] Revisar README completo e solucao de problemas.
@@ -702,3 +702,41 @@ Estado: concluída e aprovada pelo usuário em 21 de julho de 2026; publicada pa
 - Localização do navegador mantida somente em memória, com cenário automatizado de permissão negada e retorno ao município.
 - Branch `codex/citizen-public-map` publicada no PR [#3](https://github.com/jhonmatos01/ta-na-rua/pull/3), baseada na FE‑1 e sem alteração dos contratos do back-end.
 - Relatório completo em [FE2_VALIDACAO.md](FE2_VALIDACAO.md).
+
+## FE‑3 — Registro
+
+Estado: implementação e validação técnica concluídas em 21 de julho de 2026; validação visual e publicação aprovadas pelo usuário em 22 de julho de 2026.
+
+### Checklist do PRD de continuação
+
+- [x] Criar rota autenticada e ação principal para registrar uma ocorrência.
+- [x] Implementar imagem obrigatória com câmera/arquivo, prévia, tipo e tamanho validados.
+- [x] Implementar título, descrição, categoria opcional, bairro, referência e publicação anônima.
+- [x] Solicitar geolocalização somente sob ação explícita.
+- [x] Oferecer fallback manual quando a localização é negada ou indisponível.
+- [x] Permitir correção do ponto por marcador, clique no mapa e campos de coordenadas acessíveis.
+- [x] Implementar revisão dos dados antes do envio.
+- [x] Consultar possíveis duplicidades pelo endpoint oficial de proximidade.
+- [x] Permitir confirmar um registro existente ou declarar explicitamente que é um problema diferente.
+- [x] Enviar imagem e campos por `multipart/form-data` ao contrato existente.
+- [x] Impedir clique duplo e requisições concorrentes de criação na interface.
+- [x] Exibir mensagens claras para arquivo, permissão, localização, conflito, rede e sucesso.
+- [x] Descartar posição em cache, exibir a margem de precisão do dispositivo e explicar a ausência temporária de registros em revisão no mapa público.
+- [x] Preencher rua e bairro por endpoint autenticado de geocodificação reversa, com consentimento contextual, cache, limites e atribuição.
+- [x] Validar teclado, labels, desktop, mobile e ausência de rolagem horizontal.
+- [x] Aprovar lint, tipos, 66 testes, cobertura, build e 10 cenários E2E.
+- [x] Documentar contratos, decisões, limites, privacidade e roteiro manual.
+- [x] Obter validação visual e aprovação final do usuário.
+
+### Evidências
+
+- 18 arquivos e 66 testes Vitest aprovados; cobertura de 75,83% statements, 74,66% branches, 76,33% functions e 77,47% lines.
+- 10 cenários Playwright aprovados em Chromium desktop e mobile; o novo fluxo executa upload, localização manual, revisão, envio único e protocolo.
+- Envio multipart autenticado validado sem `Content-Type` manual; resposta de criação e confirmação validadas por Zod.
+- Geolocalização solicitada somente por ação, mapa corrigível e alternativa manual sempre disponível.
+- Após a validação visual, a leitura passou a usar `maximumAge: 0`, expor a margem informada pelo dispositivo e oferecer nova tentativa.
+- Com aprovação explícita, a geocodificação reversa foi implementada por `POST` autenticado, provedor Nominatim compatível e configurável, cache, coalescência, limite por usuário, intervalo externo mínimo e atribuição visível; o Nominatim público fica restrito ao desenvolvimento.
+- A confirmação de sucesso agora informa que ocorrências `PENDING_REVIEW` permanecem fora do mapa/lista públicos até publicação; acompanhamento próprio usará posteriormente o contrato autenticado `/api/v1/occurrences/mine`.
+- Candidatos recebidos pelo contrato público sanitizado; confirmação existente protegida pela unicidade transacional do back-end.
+- Relatório completo em [FE3_VALIDACAO.md](FE3_VALIDACAO.md).
+- Validação visual, commit e publicação da FE‑3 aprovados explicitamente pelo usuário em 22 de julho de 2026.

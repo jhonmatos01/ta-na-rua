@@ -66,6 +66,25 @@ export function AppLayout() {
             </NavLink>
             {auth.status === 'authenticated' ? (
               <>
+                <NavLink
+                  to="/nova-ocorrencia"
+                  className={({ isActive }) =>
+                    `inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-600 px-3 py-2 text-sm font-extrabold text-white shadow-sm transition hover:bg-brand-700 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${isActive ? 'ring-3 ring-brand-200' : ''}`
+                  }
+                  aria-label="Registrar novo problema"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="size-5 sm:mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  <span className="hidden sm:inline">Reportar</span>
+                </NavLink>
                 <NavLink to="/perfil" className={navClass} aria-label="Abrir meu perfil">
                   <svg
                     viewBox="0 0 24 24"
@@ -149,8 +168,8 @@ export function AppLayout() {
             </div>
           </div>
           <div className="text-slate-500 sm:text-right">
-            <p>Versão {env.appVersion} · Fase FE‑2</p>
-            <p className="mt-1 text-xs">Mapa público e detalhes integrados à API.</p>
+            <p>Versão {env.appVersion} · Fase FE‑3</p>
+            <p className="mt-1 text-xs">Registro guiado com foto, localização e revisão.</p>
           </div>
         </div>
       </footer>

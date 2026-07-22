@@ -27,6 +27,27 @@ export const environmentSchema = z.object({
   JSON_BODY_LIMIT: z.string().trim().min(1).default('1mb'),
   API_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(100_000).default(300),
   API_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().min(1).max(3_600).default(60),
+  GEOCODING_PROVIDER_URL: optionalUrl,
+  GEOCODING_PROVIDER_NAME: z.string().trim().min(1).max(100).default('OpenStreetMap'),
+  GEOCODING_ATTRIBUTION_TEXT: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .default('© OpenStreetMap contributors'),
+  GEOCODING_ATTRIBUTION_URL: z.url().default('https://www.openstreetmap.org/copyright'),
+  GEOCODING_USER_AGENT: z
+    .string()
+    .trim()
+    .min(10)
+    .max(300)
+    .default('TaNaRua/1.0 (+https://github.com/jhonmatos01/ta-na-rua)'),
+  GEOCODING_TIMEOUT_MS: z.coerce.number().int().min(500).max(30_000).default(5_000),
+  GEOCODING_CACHE_TTL_SECONDS: z.coerce.number().int().min(60).max(2_592_000).default(86_400),
+  GEOCODING_CACHE_MAX_ENTRIES: z.coerce.number().int().min(10).max(100_000).default(10_000),
+  GEOCODING_MIN_INTERVAL_MS: z.coerce.number().int().min(1_000).max(60_000).default(1_000),
+  GEOCODING_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(1_000).default(10),
+  GEOCODING_RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().min(1).max(3_600).default(60),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   JWT_ACCESS_SECRET: z
     .string()
@@ -124,6 +145,26 @@ export function parseEnvironment(source: NodeJS.ProcessEnv): Environment {
     new URL(result.data.CORS_ORIGIN).protocol !== 'https:'
   ) {
     throw new Error('Variaveis de ambiente invalidas: CORS_ORIGIN deve usar HTTPS em producao.');
+  }
+
+  if (
+    result.data.NODE_ENV === 'production' &&
+    result.data.GEOCODING_PROVIDER_URL !== undefined &&
+    new URL(result.data.GEOCODING_PROVIDER_URL).protocol !== 'https:'
+  ) {
+    throw new Error(
+      'Variaveis de ambiente invalidas: GEOCODING_PROVIDER_URL deve usar HTTPS em producao.',
+    );
+  }
+
+  if (
+    result.data.NODE_ENV === 'production' &&
+    result.data.GEOCODING_PROVIDER_URL !== undefined &&
+    new URL(result.data.GEOCODING_PROVIDER_URL).hostname === 'nominatim.openstreetmap.org'
+  ) {
+    throw new Error(
+      'Variaveis de ambiente invalidas: use uma instancia dedicada de geocodificacao em producao.',
+    );
   }
 
   if (

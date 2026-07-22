@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 import {
+  createdOccurrenceFixture,
   mapPointFixtures,
   publicOccurrenceFixture,
   secondPublicOccurrenceFixture,
@@ -233,4 +234,115 @@ test('explora o mapa público, busca e abre os detalhes', async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByText('Equipe responsável iniciou o atendimento.')).toBeVisible();
   await expect(page.getByText(/não publica autoria, coordenadas exatas/i)).toBeVisible();
+});
+
+test('registra uma ocorrência com foto, ponto revisado e prevenção de duplicidade', async ({
+  page,
+}) => {
+  await page.route('**/api/v1/auth/refresh', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          accessToken: 'e2e-access-token',
+          tokenType: 'Bearer',
+          expiresIn: 900,
+          user: e2eUser,
+        },
+        meta: { requestId: 'e2e-session-request' },
+      }),
+    }),
+  );
+  await page.route(/\/api\/v1\/occurrences\/nearby(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { occurrences: [] },
+        meta: { requestId: 'e2e-nearby', page: 1, limit: 5, total: 0, totalPages: 0 },
+      }),
+    }),
+  );
+  await page.route('**/api/v1/geocoding/reverse', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          address: {
+            street: 'Rua das Flores',
+            houseNumber: '123',
+            streetAddress: 'Rua das Flores, 123',
+            neighborhood: 'Pituba',
+            city: 'Salvador',
+            state: 'Bahia',
+            postcode: '41830-000',
+            countryCode: 'BR',
+            formattedAddress: 'Rua das Flores, 123 · Pituba · Salvador · Bahia',
+            provider: {
+              name: 'OpenStreetMap',
+              text: '© OpenStreetMap contributors',
+              url: 'https://www.openstreetmap.org/copyright',
+            },
+          },
+        },
+        meta: { requestId: 'e2e-geocoding' },
+      }),
+    }),
+  );
+  let submissions = 0;
+  await page.route(/\/api\/v1\/occurrences$/, async (route) => {
+    if (route.request().method() !== 'POST') {
+      await route.fallback();
+      return;
+    }
+    submissions += 1;
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { occurrence: createdOccurrenceFixture },
+        meta: { requestId: 'e2e-created' },
+      }),
+    });
+  });
+
+  await page.goto('/nova-ocorrencia');
+  await expectNoHorizontalOverflow(page);
+  await expect(page.getByRole('heading', { name: /mostre onde a cidade precisa/i })).toBeVisible();
+  await page.getByLabel('Foto do problema').setInputFiles({
+    name: 'buraco.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      'base64',
+    ),
+  });
+  await page.getByLabel('Título do problema').fill('Buraco próximo à escola');
+  await page.getByRole('button', { name: 'Continuar para localização' }).click();
+  await page.getByRole('button', { name: 'Marcar manualmente' }).click();
+  await expect(page.getByLabel('Mapa para corrigir a localização do problema')).toBeVisible();
+  const locationCanvas = page
+    .getByLabel('Mapa para corrigir a localização do problema')
+    .locator('.maplibregl-canvas');
+  await expect(locationCanvas).toBeVisible();
+  await expect
+    .poll(async () => locationCanvas.evaluate((canvas) => canvas.getBoundingClientRect().height))
+    .toBeGreaterThan(250);
+  await page.getByRole('button', { name: 'Buscar endereço deste ponto' }).click();
+  await expect(page.getByLabel(/endereço ou referência/i)).toHaveValue('Rua das Flores, 123');
+  await expect(page.getByLabel(/^Bairro/i)).toHaveValue('Pituba');
+  await expect(page.getByRole('link', { name: /openstreetmap contributors/i })).toBeVisible();
+  await page.getByRole('button', { name: 'Revisar registro' }).click();
+  await expect(page.getByText(/nenhum problema público foi encontrado/i)).toBeVisible();
+  await page.getByRole('button', { name: 'Enviar ocorrência' }).click();
+
+  await expect(page.getByText('TNR-2026-000099')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  expect(submissions).toBe(1);
 });

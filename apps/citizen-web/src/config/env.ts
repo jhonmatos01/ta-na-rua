@@ -13,6 +13,7 @@ const environmentSchema = z.object({
   VITE_DEFAULT_MUNICIPALITY_ID: z.uuid(),
   VITE_DEFAULT_MUNICIPALITY_NAME: z.string().trim().min(2).max(150),
   VITE_PASSWORD_MIN_LENGTH: z.coerce.number().int().min(8).max(128),
+  VITE_MAX_IMAGE_SIZE_MB: z.coerce.number().int().min(1).max(25),
   VITE_MAP_STYLE_URL: z.url(),
   VITE_MAP_DEFAULT_LATITUDE: z.coerce.number().min(-90).max(90),
   VITE_MAP_DEFAULT_LONGITUDE: z.coerce.number().min(-180).max(180),
@@ -30,6 +31,7 @@ export interface AppEnvironment {
   defaultMunicipalityId: string;
   defaultMunicipalityName: string;
   passwordMinLength: number;
+  maxImageSizeMb: number;
   mapStyleUrl: string;
   defaultMapLatitude: number;
   defaultMapLongitude: number;
@@ -57,6 +59,7 @@ export function parseEnvironment(source: Record<string, unknown>): AppEnvironmen
     defaultMunicipalityId: result.data.VITE_DEFAULT_MUNICIPALITY_ID,
     defaultMunicipalityName: result.data.VITE_DEFAULT_MUNICIPALITY_NAME,
     passwordMinLength: result.data.VITE_PASSWORD_MIN_LENGTH,
+    maxImageSizeMb: result.data.VITE_MAX_IMAGE_SIZE_MB,
     mapStyleUrl: result.data.VITE_MAP_STYLE_URL,
     defaultMapLatitude: result.data.VITE_MAP_DEFAULT_LATITUDE,
     defaultMapLongitude: result.data.VITE_MAP_DEFAULT_LONGITUDE,

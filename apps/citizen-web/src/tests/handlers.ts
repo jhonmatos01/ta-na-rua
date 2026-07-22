@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw';
 
 import { env } from '../config/env';
 import {
+  createdOccurrenceFixture,
   mapPointFixtures,
   publicOccurrenceFixture,
   secondPublicOccurrenceFixture,
@@ -65,6 +66,74 @@ export const handlers = [
         totalPages: 1,
       },
     }),
+  ),
+  http.get(`${env.apiBaseUrl}/api/v1/occurrences/nearby`, () =>
+    HttpResponse.json({
+      success: true,
+      data: { occurrences: [] },
+      meta: {
+        requestId: 'test-nearby-request',
+        page: 1,
+        limit: 5,
+        total: 0,
+        totalPages: 0,
+      },
+    }),
+  ),
+  http.post(`${env.apiBaseUrl}/api/v1/geocoding/reverse`, () =>
+    HttpResponse.json({
+      success: true,
+      data: {
+        address: {
+          street: 'Rua das Flores',
+          houseNumber: '123',
+          streetAddress: 'Rua das Flores, 123',
+          neighborhood: 'Pituba',
+          city: 'Salvador',
+          state: 'Bahia',
+          postcode: '41830-000',
+          countryCode: 'BR',
+          formattedAddress: 'Rua das Flores, 123 · Pituba · Salvador · Bahia',
+          provider: {
+            name: 'OpenStreetMap',
+            text: '© OpenStreetMap contributors',
+            url: 'https://www.openstreetmap.org/copyright',
+          },
+        },
+      },
+      meta: { requestId: 'test-geocoding-request' },
+    }),
+  ),
+  http.post(`${env.apiBaseUrl}/api/v1/occurrences`, () =>
+    HttpResponse.json(
+      {
+        success: true,
+        data: { occurrence: createdOccurrenceFixture },
+        meta: { requestId: 'test-create-occurrence-request' },
+      },
+      { status: 201 },
+    ),
+  ),
+  http.post(`${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/confirmations`, ({ params }) =>
+    HttpResponse.json(
+      {
+        success: true,
+        data: {
+          confirmation: {
+            id: '41000000-0000-4000-8000-000000000001',
+            occurrenceId: params.occurrenceId,
+            directlyAffected: false,
+            problemWorsened: false,
+            comment: null,
+            createdAt: '2026-07-21T12:00:00.000Z',
+            updatedAt: '2026-07-21T12:00:00.000Z',
+          },
+          occurrence: { confirmationCount: 19, priorityScore: 83.1 },
+        },
+        meta: { requestId: 'test-confirmation-request' },
+      },
+      { status: 201 },
+    ),
   ),
   http.get(`${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/timeline`, () =>
     HttpResponse.json({
