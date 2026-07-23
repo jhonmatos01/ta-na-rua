@@ -11,6 +11,14 @@ const optionalNeighborhood = z.preprocess(
   (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
   z.string().trim().min(1).max(150).optional(),
 );
+const optionalAvatarUrl = z.preprocess(
+  (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+  z
+    .url('Informe uma URL válida para a foto.')
+    .max(2048)
+    .refine((value) => value.startsWith('https://'), 'Use uma imagem hospedada em HTTPS.')
+    .optional(),
+);
 
 export const loginFormSchema = z.object({
   email,
@@ -38,6 +46,7 @@ export const profileFormSchema = z.object({
   name: z.string().trim().min(2, 'Informe seu nome.').max(150),
   phone: optionalPhone,
   neighborhood: optionalNeighborhood,
+  avatarUrl: optionalAvatarUrl,
 });
 
 export type FieldErrors = Record<string, string>;

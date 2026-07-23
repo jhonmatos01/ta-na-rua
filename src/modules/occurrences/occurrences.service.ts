@@ -149,6 +149,10 @@ export interface OccurrencesService {
     principal: AuthenticatedPrincipal,
     query: OccurrenceListQuery,
   ): Promise<PaginatedOccurrences>;
+  confirmedByMe(
+    principal: AuthenticatedPrincipal,
+    query: OccurrenceListQuery,
+  ): Promise<PaginatedOccurrences>;
   get(principal: AuthenticatedPrincipal | undefined, occurrenceId: string): Promise<unknown>;
   update(
     principal: AuthenticatedPrincipal,
@@ -338,6 +342,22 @@ export class DefaultOccurrencesService implements OccurrencesService {
     });
     return {
       occurrences: result.items.map(serializeDetailed),
+      pagination: this.pagination(query.page, query.limit, result.total),
+    };
+  }
+
+  public async confirmedByMe(
+    principal: AuthenticatedPrincipal,
+    query: OccurrenceListQuery,
+  ): Promise<PaginatedOccurrences> {
+    this.validateListCoordinates(query);
+    this.validateDateRange(query.startDate, query.endDate);
+    const result = await this.repository.list(query, {
+      publicOnly: true,
+      confirmerId: principal.sub,
+    });
+    return {
+      occurrences: result.items.map(serializePublic),
       pagination: this.pagination(query.page, query.limit, result.total),
     };
   }

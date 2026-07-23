@@ -1,6 +1,6 @@
-# Tá na Rua! — aplicativo cidadão (FE‑4)
+# Tá na Rua! — aplicativo cidadão (FE‑5)
 
-Aplicação cidadã responsiva e acessível do projeto. A FE‑4 preserva o registro guiado da fase anterior e acrescenta confirmação comunitária, remoção da própria confirmação, contador sincronizado, compartilhamento público e acompanhamento pela linha do tempo.
+Aplicação cidadã responsiva e acessível do projeto. A FE‑5 preserva as jornadas anteriores e acrescenta histórico de ocorrências criadas e confirmadas, notificações paginadas com leitura individual ou em lote e um perfil cidadão ampliado.
 
 ## Pré-requisitos
 
@@ -40,6 +40,8 @@ Abra [http://localhost:5173](http://localhost:5173). Use `localhost`, e não `12
 | `/entrar`                    | público     | login da conta cidadã                               |
 | `/criar-conta`               | público     | cadastro no município configurado                   |
 | `/perfil`                    | autenticado | consulta e atualização dos dados permitidos         |
+| `/minhas-ocorrencias`        | autenticado | ocorrências criadas e confirmadas pela pessoa       |
+| `/notificacoes`              | autenticado | avisos, filtros e controle de leitura               |
 | `/nova-ocorrencia`           | autenticado | foto, localização, duplicidades, revisão e envio    |
 | `/mapa`                      | público     | mapa, filtros, busca e lista pública de ocorrências |
 | `/ocorrencias/:occurrenceId` | público     | detalhe e linha do tempo públicos da ocorrência     |
@@ -93,6 +95,7 @@ src/
 |-- config/           validação do ambiente público com Zod
 |-- features/auth/    sessão, contratos e regras de autenticação
 |-- features/geocoding/ endereço aproximado autenticado
+|-- features/notifications/ contratos e consultas de notificações
 |-- features/occurrences/ contratos, mapa, duplicidades e registro
 |-- features/status/  contratos e consultas de saúde
 |-- layouts/          estrutura de navegação, conteúdo e rodapé
@@ -117,6 +120,8 @@ Ao solicitar a localização ou acionar **Buscar endereço deste ponto**, o apli
 
 Nos detalhes públicos, `GET /api/v1/occurrences/:id/confirmations/count` mantém contador e prioridade sincronizados. Uma sessão de cidadão também recebe `confirmedByMe` e pode usar `POST /api/v1/occurrences/:id/confirmations` ou `DELETE /api/v1/occurrences/:id/confirmations/me`. HTTP 409 e remoção já sincronizada são reconciliados sem quebrar a tela. O compartilhamento envia somente título e URL pública; quando a Web Share API não está disponível, o aplicativo copia o link ou o apresenta para cópia manual.
 
+O histórico pessoal usa `GET /api/v1/occurrences/mine` para registros próprios e o contrato aditivo `GET /api/v1/occurrences/confirmed-by-me` para confirmações da pessoa autenticada. A segunda resposta permanece sanitizada como resposta pública e não expõe autoria, endereço exato ou coordenadas precisas. As notificações usam os contratos existentes de listagem, contador e leitura; após cada mutação, lista e contador são sincronizados pelo TanStack Query.
+
 Como não existe endpoint público de metadados, a lista opcional de categorias é derivada do catálogo público carregado. Se o catálogo estiver indisponível ou não representar todas as categorias, a pessoa pode continuar sem selecionar e deixar a análise do back-end sugerir a classificação. Nenhum contrato da API foi alterado para contornar essa limitação.
 
 ## Escopo e evidências
@@ -126,5 +131,6 @@ Como não existe endpoint público de metadados, a lista opcional de categorias 
 - [Relatório de validação FE‑2](../../docs/FE2_VALIDACAO.md)
 - [Relatório de validação FE‑3](../../docs/FE3_VALIDACAO.md)
 - [Relatório de validação FE‑4](../../docs/FE4_VALIDACAO.md)
+- [Relatório de validação FE‑5](../../docs/FE5_VALIDACAO.md)
 - [Relatório de validação FE‑0](../../docs/FE0_VALIDACAO.md)
 - [Limitações conhecidas FE‑0](../../docs/FE0_LIMITACOES.md)

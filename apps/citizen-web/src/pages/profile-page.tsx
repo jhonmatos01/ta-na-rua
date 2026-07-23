@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '../components/button';
 import { FormField } from '../components/form-field';
@@ -13,6 +14,7 @@ import {
 
 export function ProfilePage() {
   const auth = useAuth();
+  const navigate = useNavigate();
   const [errors, setErrors] = useState<FieldErrors>({});
   const [requestError, setRequestError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -30,6 +32,7 @@ export function ProfilePage() {
       name: form.get('name'),
       phone: form.get('phone'),
       neighborhood: form.get('neighborhood'),
+      avatarUrl: form.get('avatarUrl'),
     });
 
     if (!parsed.success) {
@@ -44,6 +47,7 @@ export function ProfilePage() {
         name: parsed.data.name,
         phone: parsed.data.phone ?? null,
         neighborhood: parsed.data.neighborhood ?? null,
+        avatarUrl: parsed.data.avatarUrl ?? null,
       });
       setSuccess('Perfil atualizado com sucesso.');
     } catch (error) {
@@ -59,17 +63,26 @@ export function ProfilePage() {
     .map((part) => part[0])
     .join('')
     .toUpperCase();
+  const safeAvatarUrl = user.avatarUrl?.startsWith('https://') ? user.avatarUrl : null;
 
   return (
     <section className="bg-canvas py-10 sm:py-16">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
         <aside className="h-fit rounded-3xl bg-ink p-6 text-white shadow-floating sm:p-8">
-          <span
-            className="grid size-16 place-items-center rounded-2xl bg-brand-600 text-xl font-black shadow-brand"
-            aria-hidden="true"
-          >
-            {initials}
-          </span>
+          {safeAvatarUrl ? (
+            <img
+              src={safeAvatarUrl}
+              alt={`Foto de ${user.name}`}
+              className="size-16 rounded-2xl object-cover shadow-brand"
+            />
+          ) : (
+            <span
+              className="grid size-16 place-items-center rounded-2xl bg-brand-600 text-xl font-black shadow-brand"
+              aria-hidden="true"
+            >
+              {initials}
+            </span>
+          )}
           <p className="mt-6 text-xs font-extrabold uppercase tracking-[0.14em] text-brand-200">
             Conta cidadã
           </p>
@@ -86,7 +99,50 @@ export function ProfilePage() {
                 Conta ativa
               </dd>
             </div>
+            <div>
+              <dt className="text-slate-400">Membro desde</dt>
+              <dd className="mt-1 font-bold">
+                {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(
+                  new Date(user.createdAt),
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-slate-400">Último acesso</dt>
+              <dd className="mt-1 font-bold">
+                {user.lastLoginAt
+                  ? new Intl.DateTimeFormat('pt-BR', {
+                      dateStyle: 'short',
+                      timeStyle: 'short',
+                    }).format(new Date(user.lastLoginAt))
+                  : 'Primeiro acesso'}
+              </dd>
+            </div>
           </dl>
+          <nav
+            className="mt-7 grid gap-2 border-t border-white/10 pt-6"
+            aria-label="Atalhos da conta"
+          >
+            <Link
+              to="/minhas-ocorrencias"
+              className="rounded-xl bg-white/10 px-4 py-3 text-sm font-extrabold transition hover:bg-white/15 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-200"
+            >
+              Minhas ocorrências
+            </Link>
+            <Link
+              to="/notificacoes"
+              className="rounded-xl bg-white/10 px-4 py-3 text-sm font-extrabold transition hover:bg-white/15 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-200"
+            >
+              Notificações
+            </Link>
+            <button
+              type="button"
+              onClick={() => void auth.logout().then(() => navigate('/'))}
+              className="min-h-11 rounded-xl px-4 text-left text-sm font-extrabold text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-200 md:hidden"
+            >
+              Encerrar sessão
+            </button>
+          </nav>
         </aside>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-card sm:p-10">
@@ -160,6 +216,16 @@ export function ProfilePage() {
                 error={errors.neighborhood}
               />
             </div>
+            <FormField
+              id="profile-avatar"
+              name="avatarUrl"
+              label="URL da foto de perfil"
+              type="url"
+              autoComplete="url"
+              defaultValue={user.avatarUrl ?? ''}
+              error={errors.avatarUrl}
+              hint="Opcional. Use uma imagem pública em HTTPS; nenhum arquivo é enviado pelo navegador."
+            />
             <Button type="submit" disabled={submitting}>
               {submitting ? 'Salvando...' : 'Salvar alterações'}
             </Button>

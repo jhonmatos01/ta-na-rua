@@ -4,11 +4,14 @@ import {
   confirmExistingOccurrence,
   createOccurrence,
   getNearbyOccurrences,
+  getConfirmedOccurrences,
+  getMyOccurrences,
   getPublicMapPoints,
   getPublicOccurrence,
   getPublicOccurrences,
   getPublicOccurrenceTimeline,
   type OccurrenceFilters,
+  type AccountOccurrenceFilters,
   type CreateOccurrenceInput,
 } from './occurrence-api';
 
@@ -23,7 +26,29 @@ export const occurrenceQueryKeys = {
     [...occurrenceQueryKeys.all, 'timeline', occurrenceId] as const,
   nearby: (latitude: number, longitude: number) =>
     [...occurrenceQueryKeys.all, 'nearby', latitude, longitude] as const,
+  mine: (filters: AccountOccurrenceFilters) =>
+    [...occurrenceQueryKeys.all, 'mine', filters] as const,
+  confirmedByMe: (filters: AccountOccurrenceFilters) =>
+    [...occurrenceQueryKeys.all, 'confirmed-by-me', filters] as const,
 };
+
+export function useMyOccurrences(filters: AccountOccurrenceFilters) {
+  return useQuery(
+    queryOptions({
+      queryKey: occurrenceQueryKeys.mine(filters),
+      queryFn: ({ signal }) => getMyOccurrences(filters, signal),
+    }),
+  );
+}
+
+export function useConfirmedOccurrences(filters: AccountOccurrenceFilters) {
+  return useQuery(
+    queryOptions({
+      queryKey: occurrenceQueryKeys.confirmedByMe(filters),
+      queryFn: ({ signal }) => getConfirmedOccurrences(filters, signal),
+    }),
+  );
+}
 
 export function useOccurrenceCatalog() {
   return useQuery(

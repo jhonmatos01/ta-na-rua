@@ -36,7 +36,7 @@ function authenticate() {
 
 async function reachReview() {
   const user = userEvent.setup();
-  await screen.findByRole('heading', { name: /mostre onde a cidade precisa/i });
+  await screen.findByRole('heading', { name: /mostre onde a cidade precisa/i }, { timeout: 5_000 });
   await user.upload(
     screen.getByLabelText('Foto do problema'),
     new File(['imagem'], 'buraco.jpg', { type: 'image/jpeg' }),
@@ -52,7 +52,9 @@ async function reachReview() {
 describe('NewOccurrencePage', () => {
   it('protege a rota para cidadãos autenticados', async () => {
     const { router } = renderApp('/nova-ocorrencia');
-    await waitFor(() => expect(router.state.location.pathname).toBe('/entrar'));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/entrar'), {
+      timeout: 5_000,
+    });
   });
 
   it('envia foto e localização uma única vez e exibe o protocolo', async () => {

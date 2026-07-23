@@ -152,6 +152,58 @@ const e2eUser = {
   deletedAt: null,
 };
 
+async function mockAuthenticatedAccount(page: Page): Promise<void> {
+  await page.route('**/api/v1/auth/refresh', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          accessToken: 'e2e-access-token',
+          tokenType: 'Bearer',
+          expiresIn: 900,
+          user: e2eUser,
+        },
+        meta: { requestId: 'e2e-account-session' },
+      }),
+    }),
+  );
+  await page.route(/\/api\/v1\/occurrences\/mine(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { occurrences: [publicOccurrenceFixture] },
+        meta: { requestId: 'e2e-mine', page: 1, limit: 6, total: 1, totalPages: 1 },
+      }),
+    }),
+  );
+  await page.route(/\/api\/v1\/occurrences\/confirmed-by-me(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { occurrences: [secondPublicOccurrenceFixture] },
+        meta: { requestId: 'e2e-confirmed', page: 1, limit: 6, total: 1, totalPages: 1 },
+      }),
+    }),
+  );
+  await page.route('**/api/v1/notifications/unread-count', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { unreadCount: 1 },
+        meta: { requestId: 'e2e-unread-count' },
+      }),
+    }),
+  );
+}
+
 test.beforeEach(async ({ page }) => mockHealth(page));
 
 test('navega da página inicial ao status dos serviços', async ({ page }) => {
@@ -238,7 +290,7 @@ test('cadastra, entra, acessa o perfil e sai da conta', async ({ page }) => {
   await expect(page).toHaveURL(/\/perfil$/);
   await expectNoHorizontalOverflow(page);
   await expect(page.getByRole('heading', { name: 'Ana Cidadã' })).toBeVisible();
-  await page.getByRole('button', { name: /sair da conta/i }).click();
+  await page.getByRole('button', { name: /sair da conta|encerrar sessão/i }).click();
   await expect(page).toHaveURL(/\/entrar$/);
 });
 
@@ -466,4 +518,89 @@ test('confirma e desfaz a confirmação comunitária com contador sincronizado',
   );
   await expect(community.getByText('18')).toBeVisible();
   await expectNoHorizontalOverflow(page);
+});
+
+test('acompanha ocorrências criadas e confirmadas em uma conta paginada', async ({ page }) => {
+  await mockAuthenticatedAccount(page);
+  await page.goto('/minhas-ocorrencias');
+
+  await expect(page.getByRole('heading', { name: 'Ocorrências criadas' })).toBeVisible();
+  await expect(page.getByText('Buraco na Rua das Flores')).toBeVisible();
+  await page.getByRole('tab', { name: 'Eu também vi' }).click();
+  await expect(page).toHaveURL(/tab=confirmed/);
+  await expect(page.getByText('Poste apagado na avenida')).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test('lê notificações e mantém o cabeçalho móvel sem sobreposição', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 760 });
+  await mockAuthenticatedAccount(page);
+  let read = false;
+  await page.route(/\/api\/v1\/notifications(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          notifications: [
+            {
+              id: '71000000-0000-4000-8000-000000000001',
+              userId: e2eUser.id,
+              type: 'STATUS_CHANGED',
+              title: 'Ocorrência em análise',
+              message: 'A equipe iniciou a análise do seu registro.',
+              entityType: 'occurrence',
+              entityId: publicOccurrenceFixture.id,
+              readAt: read ? '2026-07-22T12:10:00.000Z' : null,
+              createdAt: '2026-07-22T12:00:00.000Z',
+            },
+          ],
+          pagination: { page: 1, limit: 8, total: 1, totalPages: 1 },
+        },
+        meta: { requestId: 'e2e-notifications' },
+      }),
+    }),
+  );
+  await page.route(/\/api\/v1\/notifications\/[^/]+\/read$/, (route) => {
+    read = true;
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          notification: {
+            id: '71000000-0000-4000-8000-000000000001',
+            userId: e2eUser.id,
+            type: 'STATUS_CHANGED',
+            title: 'Ocorrência em análise',
+            message: 'A equipe iniciou a análise do seu registro.',
+            entityType: 'occurrence',
+            entityId: publicOccurrenceFixture.id,
+            readAt: '2026-07-22T12:10:00.000Z',
+            createdAt: '2026-07-22T12:00:00.000Z',
+          },
+        },
+        meta: { requestId: 'e2e-notification-read' },
+      }),
+    });
+  });
+
+  await page.goto('/notificacoes');
+  await expect(page.getByRole('heading', { name: 'Notificações' })).toBeVisible();
+  await page.getByRole('button', { name: 'Marcar como lida' }).click();
+  await expect(page.getByText('Lida', { exact: true })).toBeVisible();
+  expect(read).toBe(true);
+  await expectNoHorizontalOverflow(page);
+
+  const headerItems = await page
+    .locator('header')
+    .first()
+    .evaluate((header) => {
+      const brand = header.querySelector('a[href="/"]')?.getBoundingClientRect();
+      const navigation = header.querySelector('nav')?.getBoundingClientRect();
+      return { brandRight: brand?.right ?? 0, navigationLeft: navigation?.left ?? 0 };
+    });
+  expect(headerItems.brandRight).toBeLessThanOrEqual(headerItems.navigationLeft);
 });

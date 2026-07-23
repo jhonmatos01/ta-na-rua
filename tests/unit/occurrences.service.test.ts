@@ -407,7 +407,7 @@ describe('servico de ocorrencias', () => {
     expect(repository.lastVisibility).toEqual({ publicOnly: false, municipalityId });
   });
 
-  it('valida periodos e serializa mapa e ocorrencias proprias', async () => {
+  it('valida periodos e serializa mapa, ocorrencias proprias e confirmadas', async () => {
     const repository = new FakeRepository();
     const service = new DefaultOccurrencesService(repository, new FakeStorage());
     const startDate = new Date('2026-07-21T00:00:00.000Z');
@@ -428,6 +428,14 @@ describe('servico de ocorrencias', () => {
     const mine = await service.mine(principal(), { page: 1, limit: 20 });
     expect(mine.occurrences[0]).toMatchObject({ createdBy: ownerId });
     expect(repository.lastVisibility).toEqual({ publicOnly: false, ownerId });
+
+    const confirmed = await service.confirmedByMe(principal(), { page: 1, limit: 20 });
+    expect(confirmed.occurrences[0]).not.toHaveProperty('createdBy');
+    expect(confirmed.occurrences[0]).toMatchObject({
+      address: 'Rua das Flores',
+      location: { approximate: true },
+    });
+    expect(repository.lastVisibility).toEqual({ publicOnly: true, confirmerId: ownerId });
   });
 
   it('permite editar ao autor apenas enquanto aguarda revisao', async () => {

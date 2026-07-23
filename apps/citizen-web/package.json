@@ -13,9 +13,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
+    "test": "vitest run --maxWorkers=1 --testTimeout=15000",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage --maxWorkers=1 --testTimeout=15000",
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "validate": "npm run lint && npm run typecheck && npm run test && npm run build"

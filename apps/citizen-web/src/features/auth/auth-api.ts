@@ -19,6 +19,7 @@ export interface UpdateProfileInput {
   name?: string;
   phone?: string | null;
   neighborhood?: string | null;
+  avatarUrl?: string | null;
 }
 
 export function login(input: LoginInput) {

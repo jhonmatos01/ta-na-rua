@@ -22,7 +22,7 @@ export const riskLevelLabels: Record<RiskLevel, string> = {
   CRITICAL: 'Crítico',
 };
 
-export function getNeighborhoodLabel(occurrence: PublicOccurrence): string {
+export function getNeighborhoodLabel(occurrence: Pick<PublicOccurrence, 'neighborhood'>): string {
   if (occurrence.neighborhood === null) return 'Bairro não informado';
   return typeof occurrence.neighborhood === 'string'
     ? occurrence.neighborhood

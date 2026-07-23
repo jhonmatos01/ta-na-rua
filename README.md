@@ -2,11 +2,11 @@
 
 API REST da plataforma de inteligencia urbana colaborativa **Ta na Rua!**, implementada a partir do PRD Tecnico Consolidado v1.2.
 
-Estado atual: **back-end MVP concluído e preservado; FE‑0 a FE‑3 publicadas em PRs empilhados; FE‑4 Comunidade implementada e em validação final**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
+Estado atual: **back-end MVP concluído e preservado; FE‑0 a FE‑4 publicadas em PRs empilhados; FE‑5 Conta e notificações concluída e aprovada**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
 
 ## O que existe
 
-- aplicação cidadã responsiva em `apps/citizen-web`, com status real da API, cadastro, login, sessão segura, perfil, mapa público, filtros, detalhes, registro guiado, confirmação comunitária, compartilhamento, linha do tempo, acessibilidade e testes;
+- aplicação cidadã responsiva em `apps/citizen-web`, com status real da API, cadastro, login, sessão segura, perfil, mapa público, filtros, detalhes, registro guiado, confirmação comunitária, histórico pessoal, notificações, compartilhamento, linha do tempo, acessibilidade e testes;
 
 - Node.js 24, TypeScript estrito e Express;
 - validacao de ambiente com Zod;
@@ -154,12 +154,12 @@ npm run dev
 
 ### Interfaces visuais de teste
 
-- **Aplicativo cidadão FE‑3** em `http://localhost:5173`, com início, autenticação, mapa público, detalhes e registro de ocorrências com foto, ponto corrigível, endereço aproximado e revisão de duplicidades. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
+- **Aplicativo cidadão FE‑5** em `http://localhost:5173`, com início, autenticação, mapa público, detalhes, registro de ocorrências, confirmação comunitária, histórico pessoal, notificações e perfil. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
 - **Swagger UI** e a interface principal para testar a API: autentique com `Authorize`, preencha os formularios e execute cada rota, inclusive uploads de imagem.
 - **Adminer** permite inspecionar visualmente o PostgreSQL/PostGIS com os valores de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` do `.env` local.
 - A pasta `api-client` pode ser aberta no aplicativo **Bruno** para executar os cenarios agrupados por modulo.
 
-A FE‑3 ainda não inclui a tela geral de confirmações comunitárias, acompanhamento das próprias ocorrências, notificações nem interfaces de operador e administrador. Consulte [docs/FE3_VALIDACAO.md](docs/FE3_VALIDACAO.md).
+A FE‑5 ainda não inclui a avaliação pós-reparo, prevista para a FE‑6, nem interfaces de operador e administrador. Consulte [docs/FE5_VALIDACAO.md](docs/FE5_VALIDACAO.md).
 
 ## Variaveis de ambiente da fase
 
