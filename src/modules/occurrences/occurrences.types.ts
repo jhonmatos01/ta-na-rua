@@ -118,6 +118,7 @@ export interface OccurrenceVisibility {
   municipalityId?: string;
   ownerId?: string;
   confirmerId?: string;
+  evaluationPendingForUserId?: string;
 }
 
 export interface OccurrenceRepository {

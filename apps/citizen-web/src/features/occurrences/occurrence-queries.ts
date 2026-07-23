@@ -6,6 +6,7 @@ import {
   getNearbyOccurrences,
   getConfirmedOccurrences,
   getMyOccurrences,
+  getPendingEvaluationOccurrences,
   getPublicMapPoints,
   getPublicOccurrence,
   getPublicOccurrences,
@@ -30,6 +31,8 @@ export const occurrenceQueryKeys = {
     [...occurrenceQueryKeys.all, 'mine', filters] as const,
   confirmedByMe: (filters: AccountOccurrenceFilters) =>
     [...occurrenceQueryKeys.all, 'confirmed-by-me', filters] as const,
+  pendingEvaluations: (filters: AccountOccurrenceFilters) =>
+    [...occurrenceQueryKeys.all, 'pending-evaluations', filters] as const,
 };
 
 export function useMyOccurrences(filters: AccountOccurrenceFilters) {
@@ -46,6 +49,15 @@ export function useConfirmedOccurrences(filters: AccountOccurrenceFilters) {
     queryOptions({
       queryKey: occurrenceQueryKeys.confirmedByMe(filters),
       queryFn: ({ signal }) => getConfirmedOccurrences(filters, signal),
+    }),
+  );
+}
+
+export function usePendingEvaluationOccurrences(filters: AccountOccurrenceFilters) {
+  return useQuery(
+    queryOptions({
+      queryKey: occurrenceQueryKeys.pendingEvaluations(filters),
+      queryFn: ({ signal }) => getPendingEvaluationOccurrences(filters, signal),
     }),
   );
 }

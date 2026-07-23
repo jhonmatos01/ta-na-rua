@@ -42,13 +42,17 @@ export default tseslint.config(
     },
   },
   {
-    files: ['*.{js,ts}', 'e2e/**/*.ts'],
+    files: ['*.{js,ts}', '**/*.{js,mjs}', 'e2e/**/*.ts'],
     ...tseslint.configs.disableTypeChecked,
     languageOptions: {
       globals: {
         ...globals.node,
       },
     },
+  },
+  {
+    files: ['public/sw.js'],
+    languageOptions: { globals: globals.serviceworker },
   },
   eslintConfigPrettier,
 );

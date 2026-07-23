@@ -1831,6 +1831,23 @@ const openApiBaseDocument = {
         },
       },
     },
+    '/api/v1/occurrences/pending-evaluations': {
+      get: {
+        tags: ['Occurrences', 'Evaluations'],
+        summary: 'Lista reparos que aguardam a avaliacao do cidadao autenticado',
+        description:
+          'Retorna ocorrencias RESOLVED ou CLOSED relacionadas ao cidadao e que ainda nao possuem uma avaliacao dele. Os dados sao publicos e sanitizados.',
+        operationId: 'listMyPendingEvaluations',
+        security: bearerSecurity,
+        parameters: occurrenceListParameters,
+        responses: {
+          '200': { description: 'Lista paginada de reparos pendentes de avaliacao.' },
+          '401': errorResponse('Autenticacao obrigatoria.'),
+          '403': errorResponse('Somente CITIZEN possui avaliacoes pendentes.'),
+          '422': errorResponse('Filtros invalidos.'),
+        },
+      },
+    },
     '/api/v1/occurrences/{occurrenceId}': {
       get: {
         tags: ['Occurrences'],

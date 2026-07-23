@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { Button } from '../components/button';
 import { FormField } from '../components/form-field';
+import { PwaInstallCard } from '../components/pwa-install-card';
 import { env } from '../config/env';
 import { useAuth } from '../features/auth/auth-context';
 import { getAuthErrorMessage } from '../features/auth/auth-errors';
@@ -230,6 +231,7 @@ export function ProfilePage() {
               {submitting ? 'Salvando...' : 'Salvar alterações'}
             </Button>
           </form>
+          <PwaInstallCard />
         </div>
       </div>
     </section>

@@ -188,6 +188,31 @@ function baseConditions(visibility: OccurrenceVisibility, values: unknown[]): st
       )`,
     );
   }
+  if (visibility.evaluationPendingForUserId !== undefined) {
+    values.push(visibility.evaluationPendingForUserId);
+    const userParameter = `$${values.length}`;
+    conditions.push(
+      `o.status IN ('RESOLVED', 'CLOSED')`,
+      `(
+        o.created_by = ${userParameter}
+        OR EXISTS (
+          SELECT 1 FROM occurrence_reports occurrence_report
+          WHERE occurrence_report.occurrence_id = o.id
+            AND occurrence_report.reported_by = ${userParameter}
+        )
+        OR EXISTS (
+          SELECT 1 FROM occurrence_confirmations occurrence_confirmation
+          WHERE occurrence_confirmation.occurrence_id = o.id
+            AND occurrence_confirmation.user_id = ${userParameter}
+        )
+      )`,
+      `NOT EXISTS (
+        SELECT 1 FROM repair_evaluations repair_evaluation
+        WHERE repair_evaluation.occurrence_id = o.id
+          AND repair_evaluation.user_id = ${userParameter}
+      )`,
+    );
+  }
   return conditions;
 }
 

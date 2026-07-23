@@ -36,7 +36,11 @@ export function NotificationsPage() {
   async function openNotification(notification: CitizenNotification) {
     if (notification.readAt === null) await markRead.mutateAsync(notification.id);
     if (notification.entityType === 'occurrence' && notification.entityId !== null) {
-      await navigate(`/ocorrencias/${notification.entityId}`);
+      await navigate(
+        notification.type === 'REPAIR_EVALUATION_REQUESTED'
+          ? `/avaliar/${notification.entityId}`
+          : `/ocorrencias/${notification.entityId}`,
+      );
     }
   }
 
@@ -172,7 +176,9 @@ export function NotificationsPage() {
                         <div className="mt-4 flex flex-wrap gap-2">
                           {canOpen ? (
                             <Button onClick={() => void openNotification(notification)}>
-                              Ver ocorrência
+                              {notification.type === 'REPAIR_EVALUATION_REQUESTED'
+                                ? 'Avaliar reparo'
+                                : 'Ver ocorrência'}
                             </Button>
                           ) : null}
                           {notification.readAt === null ? (

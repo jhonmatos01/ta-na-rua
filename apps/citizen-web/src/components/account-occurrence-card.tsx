@@ -11,18 +11,26 @@ import { PublicOccurrenceImage } from './public-occurrence-image';
 
 interface AccountOccurrenceCardProps {
   occurrence: AccountOccurrence;
-  relation: 'confirmed' | 'created';
+  relation: 'confirmed' | 'created' | 'pending';
 }
 
 export function AccountOccurrenceCard({ occurrence, relation }: AccountOccurrenceCardProps) {
   const imageUrl = occurrence.images
     .map((image) => resolveApiAssetUrl(image.url))
     .find((value) => value !== null);
+  const target =
+    relation === 'pending' ? `/avaliar/${occurrence.id}` : `/ocorrencias/${occurrence.id}`;
+  const relationLabel =
+    relation === 'created'
+      ? 'Criada por você'
+      : relation === 'confirmed'
+        ? 'Confirmada por você'
+        : 'Avaliar agora';
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-card transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-floating">
       <Link
-        to={`/ocorrencias/${occurrence.id}`}
+        to={target}
         className="grid min-h-full sm:grid-cols-[10rem_1fr] focus-visible:outline-3 focus-visible:outline-offset-[-3px] focus-visible:outline-brand-600"
       >
         <div className="min-h-40 bg-slate-100 sm:min-h-full">
@@ -48,8 +56,16 @@ export function AccountOccurrenceCard({ occurrence, relation }: AccountOccurrenc
           <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 pt-5 text-xs font-bold text-slate-600">
             <span>{occurrence.confirmationCount} confirmações</span>
             <span>Prioridade {Math.round(occurrence.priorityScore)}</span>
-            <span className={relation === 'created' ? 'text-brand-700' : 'text-emerald-700'}>
-              {relation === 'created' ? 'Criada por você' : 'Confirmada por você'}
+            <span
+              className={
+                relation === 'pending'
+                  ? 'text-coral-600'
+                  : relation === 'created'
+                    ? 'text-brand-700'
+                    : 'text-emerald-700'
+              }
+            >
+              {relationLabel}
             </span>
           </div>
         </div>

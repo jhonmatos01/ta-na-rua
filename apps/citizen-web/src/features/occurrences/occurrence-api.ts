@@ -53,7 +53,10 @@ export async function getPublicOccurrences(filters: OccurrenceFilters, signal?: 
 }
 
 async function getAccountOccurrences(
-  path: '/api/v1/occurrences/confirmed-by-me' | '/api/v1/occurrences/mine',
+  path:
+    | '/api/v1/occurrences/confirmed-by-me'
+    | '/api/v1/occurrences/mine'
+    | '/api/v1/occurrences/pending-evaluations',
   filters: AccountOccurrenceFilters,
   signal?: AbortSignal,
 ) {
@@ -87,6 +90,13 @@ export function getMyOccurrences(filters: AccountOccurrenceFilters, signal?: Abo
 
 export function getConfirmedOccurrences(filters: AccountOccurrenceFilters, signal?: AbortSignal) {
   return getAccountOccurrences('/api/v1/occurrences/confirmed-by-me', filters, signal);
+}
+
+export function getPendingEvaluationOccurrences(
+  filters: AccountOccurrenceFilters,
+  signal?: AbortSignal,
+) {
+  return getAccountOccurrences('/api/v1/occurrences/pending-evaluations', filters, signal);
 }
 
 export async function getPublicMapPoints(

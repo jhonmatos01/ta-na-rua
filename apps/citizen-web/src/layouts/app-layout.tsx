@@ -211,8 +211,8 @@ export function AppLayout() {
             </div>
           </div>
           <div className="text-slate-500 sm:text-right">
-            <p>Versão {env.appVersion} · Fase FE‑5</p>
-            <p className="mt-1 text-xs">Atividades, notificações e conta cidadã.</p>
+            <p>Versão {env.appVersion} · Fase FE‑6</p>
+            <p className="mt-1 text-xs">Avaliações de reparo e aplicativo instalável.</p>
           </div>
         </div>
       </footer>

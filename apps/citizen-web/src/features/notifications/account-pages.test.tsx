@@ -31,6 +31,12 @@ describe('conta e notificações da cidadã', () => {
       await screen.findByRole('heading', { name: 'Ocorrências confirmadas' }),
     ).toBeInTheDocument();
     expect(await screen.findByText('Poste apagado na avenida')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Avaliar reparos' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Avaliações pendentes' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('Avaliar agora')).toBeInTheDocument();
   });
 
   it('exibe o estado vazio das atividades sem perder a navegação', async () => {

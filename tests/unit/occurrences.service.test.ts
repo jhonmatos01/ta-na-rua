@@ -436,6 +436,17 @@ describe('servico de ocorrencias', () => {
       location: { approximate: true },
     });
     expect(repository.lastVisibility).toEqual({ publicOnly: true, confirmerId: ownerId });
+
+    repository.occurrence = record({ status: 'RESOLVED' });
+    const pending = await service.pendingEvaluations(principal(), { page: 1, limit: 20 });
+    expect(pending.occurrences[0]).not.toHaveProperty('createdBy');
+    expect(repository.lastVisibility).toEqual({
+      publicOnly: true,
+      evaluationPendingForUserId: ownerId,
+    });
+    await expect(
+      service.pendingEvaluations(principal({ role: 'MODERATOR' }), { page: 1, limit: 20 }),
+    ).rejects.toMatchObject<AppError>({ statusCode: 403, code: 'FORBIDDEN' });
   });
 
   it('permite editar ao autor apenas enquanto aguarda revisao', async () => {
