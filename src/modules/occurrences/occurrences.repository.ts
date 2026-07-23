@@ -178,6 +178,16 @@ function baseConditions(visibility: OccurrenceVisibility, values: unknown[]): st
     values.push(visibility.ownerId);
     conditions.push(`o.created_by = $${values.length}`);
   }
+  if (visibility.confirmerId !== undefined) {
+    values.push(visibility.confirmerId);
+    conditions.push(
+      `EXISTS (
+        SELECT 1
+        FROM occurrence_confirmations oc
+        WHERE oc.occurrence_id = o.id AND oc.user_id = $${values.length}
+      )`,
+    );
+  }
   return conditions;
 }
 

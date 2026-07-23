@@ -117,6 +117,7 @@ export interface OccurrenceVisibility {
   publicOnly: boolean;
   municipalityId?: string;
   ownerId?: string;
+  confirmerId?: string;
 }
 
 export interface OccurrenceRepository {

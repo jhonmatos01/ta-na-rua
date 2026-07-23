@@ -2,6 +2,7 @@ import { env } from '../../config/env';
 import { apiRequest } from '../../lib/http-client';
 import { createConfirmation } from '../confirmations/confirmation-api';
 import {
+  accountOccurrenceListResponseSchema,
   createOccurrenceResponseSchema,
   occurrenceDetailResponseSchema,
   occurrenceListResponseSchema,
@@ -15,6 +16,11 @@ export interface OccurrenceFilters {
   category?: string;
   neighborhood?: string;
   status?: OccurrenceStatus;
+}
+
+export interface AccountOccurrenceFilters extends OccurrenceFilters {
+  page: number;
+  limit?: number;
 }
 
 export interface CreateOccurrenceInput extends ReportDetails, ReportLocation {
@@ -44,6 +50,43 @@ export async function getPublicOccurrences(filters: OccurrenceFilters, signal?: 
       totalPages: response.meta.totalPages,
     },
   };
+}
+
+async function getAccountOccurrences(
+  path: '/api/v1/occurrences/confirmed-by-me' | '/api/v1/occurrences/mine',
+  filters: AccountOccurrenceFilters,
+  signal?: AbortSignal,
+) {
+  const response = await apiRequest(path, {
+    query: {
+      category: filters.category,
+      neighborhood: filters.neighborhood,
+      status: filters.status,
+      page: filters.page,
+      limit: filters.limit ?? 6,
+    },
+    signal,
+    schema: accountOccurrenceListResponseSchema,
+    auth: true,
+  });
+
+  return {
+    occurrences: response.data.occurrences,
+    pagination: {
+      page: response.meta.page,
+      limit: response.meta.limit,
+      total: response.meta.total,
+      totalPages: response.meta.totalPages,
+    },
+  };
+}
+
+export function getMyOccurrences(filters: AccountOccurrenceFilters, signal?: AbortSignal) {
+  return getAccountOccurrences('/api/v1/occurrences/mine', filters, signal);
+}
+
+export function getConfirmedOccurrences(filters: AccountOccurrenceFilters, signal?: AbortSignal) {
+  return getAccountOccurrences('/api/v1/occurrences/confirmed-by-me', filters, signal);
 }
 
 export async function getPublicMapPoints(

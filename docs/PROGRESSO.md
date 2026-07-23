@@ -743,7 +743,7 @@ Estado: implementação e validação técnica concluídas em 21 de julho de 202
 
 ## FE‑4 — Comunidade
 
-Estado: implementação e validação técnica concluídas em 22 de julho de 2026; aguardando validação visual e aprovação explícita do usuário.
+Estado: concluída e aprovada pelo usuário em 22 de julho de 2026; publicada para revisão no PR #5.
 
 ### Checklist do PRD de continuação
 
@@ -759,7 +759,7 @@ Estado: implementação e validação técnica concluídas em 22 de julho de 202
 - [x] Retornar à ocorrência após o login, preservar a sessão no recarregamento e corrigir o cabeçalho móvel.
 - [x] Aprovar 73 testes, cobertura e 14 cenários E2E.
 - [x] Documentar contratos, limites, segurança e roteiro manual.
-- [~] Obter validação visual e aprovação final do usuário.
+- [x] Obter validação visual e aprovação final do usuário.
 
 ### Evidências
 
@@ -770,3 +770,35 @@ Estado: implementação e validação técnica concluídas em 22 de julho de 202
 - Compartilhamento limitado ao título e à URL pública, com Web Share API, clipboard e fallback selecionável.
 - Nenhuma alteração de back-end, banco, migration, formato de token ou contrato da API.
 - Relatório completo em [FE4_VALIDACAO.md](FE4_VALIDACAO.md).
+- Branch `codex/citizen-community` publicada no PR [#5](https://github.com/jhonmatos01/ta-na-rua/pull/5), a partir do commit `67a8d91`.
+
+## FE‑5 — Conta e notificações
+
+Estado: concluída e aprovada pelo usuário em 22 de julho de 2026; pronta para publicação na branch `codex/citizen-notifications`.
+
+### Checklist do PRD de continuação
+
+- [x] Implementar **Minhas ocorrências** com registros criados pela pessoa autenticada.
+- [x] Implementar a relação de ocorrências confirmadas pela pessoa autenticada.
+- [x] Implementar paginação, carregamento, erro e estados vazios independentes.
+- [x] Implementar contador e lista de notificações com filtros de todas e não lidas.
+- [x] Permitir marcar uma notificação ou todas as notificações como lidas.
+- [x] Manter lista e contador sincronizados após cada ação.
+- [x] Ampliar o perfil com situação da conta, município, datas, atalhos e avatar HTTPS opcional.
+- [x] Preservar sessão por cookie `httpOnly`, autorização e privacidade das respostas públicas.
+- [x] Documentar e testar o contrato aditivo `GET /api/v1/occurrences/confirmed-by-me`.
+- [x] Validar teclado, labels, mensagens vivas, desktop, 320 px e ausência de rolagem horizontal.
+- [x] Aprovar lint, tipos, testes, build e 18 cenários E2E.
+- [x] Documentar contratos, decisão de compatibilidade, segurança e roteiro manual.
+- [x] Obter validação visual e aprovação final do usuário.
+
+### Evidências
+
+- 207 testes do back-end e 79 testes Vitest do aplicativo aprovados; cobertura do aplicativo em 77,46% statements, 75,56% branches, 77,90% functions e 78,91% lines; 18 cenários Playwright aprovados em Chromium desktop e mobile.
+- `GET /api/v1/occurrences/confirmed-by-me` é aditivo, autenticado, paginado e devolve somente a projeção pública sanitizada.
+- Lista, contador e leitura de notificações usam os contratos existentes e invalidam os caches relacionados após a mutação.
+- Avatar aceita somente URL HTTPS; dados privados permanecem restritos ao perfil autenticado e não entram nos cartões públicos.
+- Navegação validada com a API e o banco locais em 320 × 760 e 1440 × 900, sem sobreposição ou rolagem horizontal.
+- A barra móvel mantém marca compacta, registro, avisos e perfil; o encerramento de sessão também está disponível no perfil.
+- Avaliações pendentes permanecem reservadas para a FE‑6, conforme o recorte do PRD.
+- Relatório completo em [FE5_VALIDACAO.md](FE5_VALIDACAO.md).

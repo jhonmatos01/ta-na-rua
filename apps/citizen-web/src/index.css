@@ -28,14 +28,14 @@
 }
 
 html {
-  min-width: 320px;
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 
 body {
-  min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  overflow-x: clip;
   background: #f7faff;
 }
 

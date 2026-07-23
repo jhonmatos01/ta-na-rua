@@ -102,6 +102,25 @@ const detailedLocationSchema = z.object({
   approximate: z.literal(false),
 });
 
+const accountOccurrenceSchema = z.union([
+  publicOccurrenceSchema,
+  publicOccurrenceSchema.omit({ location: true }).extend({
+    createdBy: z.uuid(),
+    location: detailedLocationSchema,
+  }),
+]);
+
+export const accountOccurrenceListResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.object({ occurrences: z.array(accountOccurrenceSchema) }),
+  meta: responseMetaSchema.extend({
+    page: z.number().int().positive(),
+    limit: z.number().int().positive(),
+    total: z.number().int().nonnegative(),
+    totalPages: z.number().int().nonnegative(),
+  }),
+});
+
 export const createdOccurrenceSchema = publicOccurrenceSchema.omit({ location: true }).extend({
   createdBy: z.uuid(),
   location: detailedLocationSchema,
@@ -141,6 +160,7 @@ export const occurrenceTimelineResponseSchema = z.object({
 export type OccurrenceStatus = z.infer<typeof occurrenceStatusSchema>;
 export type RiskLevel = z.infer<typeof riskLevelSchema>;
 export type PublicOccurrence = z.infer<typeof publicOccurrenceSchema>;
+export type AccountOccurrence = z.infer<typeof accountOccurrenceSchema>;
 export type CreatedOccurrence = z.infer<typeof createdOccurrenceSchema>;
 export type MapPoint = z.infer<typeof mapPointSchema>;
 export type TimelineItem = z.infer<typeof timelineItemSchema>;

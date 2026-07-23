@@ -4,6 +4,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { BrandMark } from '../components/brand-mark';
 import { env } from '../config/env';
 import { useAuth } from '../features/auth/auth-context';
+import { useUnreadNotificationCount } from '../features/notifications/notification-queries';
 
 function navClass({ isActive }: { isActive: boolean }): string {
   return `relative inline-flex min-h-11 items-center justify-center rounded-xl px-3 py-2 text-sm font-extrabold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
@@ -14,6 +15,8 @@ function navClass({ isActive }: { isActive: boolean }): string {
 export function AppLayout() {
   const auth = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
+  const unreadQuery = useUnreadNotificationCount(auth.status === 'authenticated');
+  const unreadCount = unreadQuery.data ?? 0;
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -38,7 +41,12 @@ export function AppLayout() {
             to="/"
             className="shrink-0 rounded-xl focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-brand-600"
           >
-            <BrandMark />
+            <span className="hidden sm:inline-flex">
+              <BrandMark />
+            </span>
+            <span className="inline-flex sm:hidden">
+              <BrandMark compact />
+            </span>
           </NavLink>
           <nav
             aria-label="Navegação principal"
@@ -67,6 +75,11 @@ export function AppLayout() {
             </span>
             {auth.status === 'authenticated' ? (
               <>
+                <span className="hidden lg:block">
+                  <NavLink to="/minhas-ocorrencias" className={navClass}>
+                    Minhas ocorrências
+                  </NavLink>
+                </span>
                 <NavLink
                   to="/nova-ocorrencia"
                   className={({ isActive }) =>
@@ -86,6 +99,35 @@ export function AppLayout() {
                   </svg>
                   <span className="hidden sm:inline">Reportar</span>
                 </NavLink>
+                <NavLink
+                  to="/notificacoes"
+                  className={navClass}
+                  aria-label={
+                    unreadCount > 0
+                      ? `Abrir notificações, ${unreadCount} não lidas`
+                      : 'Abrir notificações'
+                  }
+                >
+                  <span className="relative">
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="size-5 sm:mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      aria-hidden="true"
+                    >
+                      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" />
+                      <path d="M10 21h4" />
+                    </svg>
+                    {unreadCount > 0 ? (
+                      <span className="absolute -right-2 -top-2 grid min-w-4 place-items-center rounded-full bg-coral-500 px-1 text-[10px] font-black leading-4 text-white sm:right-0">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="hidden sm:inline">Avisos</span>
+                </NavLink>
                 <NavLink to="/perfil" className={navClass} aria-label="Abrir meu perfil">
                   <svg
                     viewBox="0 0 24 24"
@@ -104,7 +146,7 @@ export function AppLayout() {
                   type="button"
                   onClick={() => void handleLogout()}
                   disabled={loggingOut}
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl px-3 py-2 text-sm font-extrabold text-slate-600 transition hover:bg-slate-100 hover:text-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-60"
+                  className="hidden min-h-11 items-center justify-center rounded-xl px-3 py-2 text-sm font-extrabold text-slate-600 transition hover:bg-slate-100 hover:text-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-60 md:inline-flex"
                   aria-label="Sair da conta"
                 >
                   <svg
@@ -169,8 +211,8 @@ export function AppLayout() {
             </div>
           </div>
           <div className="text-slate-500 sm:text-right">
-            <p>Versão {env.appVersion} · Fase FE‑4</p>
-            <p className="mt-1 text-xs">Registro, confirmação comunitária e acompanhamento.</p>
+            <p>Versão {env.appVersion} · Fase FE‑5</p>
+            <p className="mt-1 text-xs">Atividades, notificações e conta cidadã.</p>
           </div>
         </div>
       </footer>

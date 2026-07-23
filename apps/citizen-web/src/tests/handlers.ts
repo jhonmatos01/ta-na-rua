@@ -80,6 +80,87 @@ export const handlers = [
       },
     }),
   ),
+  http.get(`${env.apiBaseUrl}/api/v1/occurrences/mine`, () =>
+    HttpResponse.json({
+      success: true,
+      data: { occurrences: [publicOccurrenceFixture] },
+      meta: {
+        requestId: 'test-my-occurrences-request',
+        page: 1,
+        limit: 6,
+        total: 1,
+        totalPages: 1,
+      },
+    }),
+  ),
+  http.get(`${env.apiBaseUrl}/api/v1/occurrences/confirmed-by-me`, () =>
+    HttpResponse.json({
+      success: true,
+      data: { occurrences: [secondPublicOccurrenceFixture] },
+      meta: {
+        requestId: 'test-confirmed-occurrences-request',
+        page: 1,
+        limit: 6,
+        total: 1,
+        totalPages: 1,
+      },
+    }),
+  ),
+  http.get(`${env.apiBaseUrl}/api/v1/notifications/unread-count`, () =>
+    HttpResponse.json({
+      success: true,
+      data: { unreadCount: 2 },
+      meta: { requestId: 'test-unread-count-request' },
+    }),
+  ),
+  http.get(`${env.apiBaseUrl}/api/v1/notifications`, () =>
+    HttpResponse.json({
+      success: true,
+      data: {
+        notifications: [
+          {
+            id: '71000000-0000-4000-8000-000000000001',
+            userId: '11000000-0000-4000-8000-000000000001',
+            type: 'STATUS_CHANGED',
+            title: 'Ocorrência em análise',
+            message: 'A equipe responsável iniciou a análise do seu registro.',
+            entityType: 'occurrence',
+            entityId: publicOccurrenceFixture.id,
+            readAt: null,
+            createdAt: '2026-07-22T12:00:00.000Z',
+          },
+        ],
+        pagination: { page: 1, limit: 8, total: 1, totalPages: 1 },
+      },
+      meta: { requestId: 'test-notifications-request' },
+    }),
+  ),
+  http.patch(`${env.apiBaseUrl}/api/v1/notifications/read-all`, () =>
+    HttpResponse.json({
+      success: true,
+      data: { markedAsRead: 1 },
+      meta: { requestId: 'test-read-all-request' },
+    }),
+  ),
+  http.patch(`${env.apiBaseUrl}/api/v1/notifications/:notificationId/read`, ({ params }) =>
+    HttpResponse.json({
+      success: true,
+      data: {
+        notification: {
+          id: params.notificationId,
+          userId: '11000000-0000-4000-8000-000000000001',
+          type: 'STATUS_CHANGED',
+          title: 'Ocorrência em análise',
+          message: 'A equipe responsável iniciou a análise do seu registro.',
+          entityType: 'occurrence',
+          entityId: publicOccurrenceFixture.id,
+          readAt: '2026-07-22T12:10:00.000Z',
+          createdAt: '2026-07-22T12:00:00.000Z',
+        },
+      },
+      meta: { requestId: 'test-read-notification-request' },
+    }),
+  ),
   http.post(`${env.apiBaseUrl}/api/v1/geocoding/reverse`, () =>
     HttpResponse.json({
       success: true,

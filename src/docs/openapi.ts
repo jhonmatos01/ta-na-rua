@@ -1815,6 +1815,22 @@ const openApiBaseDocument = {
         },
       },
     },
+    '/api/v1/occurrences/confirmed-by-me': {
+      get: {
+        tags: ['Occurrences'],
+        summary: 'Lista as ocorrencias confirmadas pelo usuario autenticado',
+        description:
+          'Retorna somente dados publicos sanitizados, com filtros e paginacao iguais aos da listagem de ocorrencias.',
+        operationId: 'listOccurrencesConfirmedByMe',
+        security: bearerSecurity,
+        parameters: occurrenceListParameters,
+        responses: {
+          '200': { description: 'Lista paginada de ocorrencias confirmadas pelo usuario.' },
+          '401': errorResponse('Autenticacao obrigatoria.'),
+          '422': errorResponse('Filtros invalidos.'),
+        },
+      },
+    },
     '/api/v1/occurrences/{occurrenceId}': {
       get: {
         tags: ['Occurrences'],
