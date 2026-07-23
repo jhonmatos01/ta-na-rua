@@ -150,18 +150,19 @@ async function notifyRelated(
   title: string,
   message: string,
   now: Date,
+  type: 'REPAIR_EVALUATION_REQUESTED' | 'STATUS_CHANGED' = 'STATUS_CHANGED',
 ): Promise<void> {
   await client.query(
     `INSERT INTO notifications (
        user_id, type, title, message, entity_type, entity_id, created_at
      )
-     SELECT related.user_id, 'STATUS_CHANGED', $2, $3, 'occurrence', $1, $4
+     SELECT related.user_id, $5, $2, $3, 'occurrence', $1, $4
        FROM (
          SELECT created_by AS user_id FROM occurrences WHERE id = $1
          UNION SELECT reported_by FROM occurrence_reports WHERE occurrence_id = $1
          UNION SELECT user_id FROM occurrence_confirmations WHERE occurrence_id = $1
        ) related`,
-    [occurrence.id, title, message, now],
+    [occurrence.id, title, message, now, type],
   );
 }
 
@@ -300,10 +301,15 @@ export class PostgresStatusRepository implements StatusRepository {
       await notifyRelated(
         client,
         occurrence,
-        'Status da ocorrencia atualizado',
+        prepared.status === 'RESOLVED'
+          ? 'Reparo pronto para avaliacao'
+          : 'Status da ocorrencia atualizado',
         data.input.publicMessage ??
-          `A ocorrencia ${occurrence.protocol} mudou de ${occurrence.status} para ${prepared.status}.`,
+          (prepared.status === 'RESOLVED'
+            ? `A ocorrencia ${occurrence.protocol} foi marcada como resolvida. Conte como ficou o reparo.`
+            : `A ocorrencia ${occurrence.protocol} mudou de ${occurrence.status} para ${prepared.status}.`),
         data.now,
+        prepared.status === 'RESOLVED' ? 'REPAIR_EVALUATION_REQUESTED' : 'STATUS_CHANGED',
       );
       await enqueueOutbox(
         client,

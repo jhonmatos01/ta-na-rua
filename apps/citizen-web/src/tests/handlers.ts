@@ -106,6 +106,19 @@ export const handlers = [
       },
     }),
   ),
+  http.get(`${env.apiBaseUrl}/api/v1/occurrences/pending-evaluations`, () =>
+    HttpResponse.json({
+      success: true,
+      data: { occurrences: [{ ...publicOccurrenceFixture, status: 'RESOLVED' }] },
+      meta: {
+        requestId: 'test-pending-evaluations-request',
+        page: 1,
+        limit: 6,
+        total: 1,
+        totalPages: 1,
+      },
+    }),
+  ),
   http.get(`${env.apiBaseUrl}/api/v1/notifications/unread-count`, () =>
     HttpResponse.json({
       success: true,
@@ -239,6 +252,33 @@ export const handlers = [
       success: true,
       data: { timeline: timelineFixtures },
       meta: { requestId: 'test-timeline-request' },
+    }),
+  ),
+  http.get(`${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/evaluations`, () =>
+    HttpResponse.json({
+      success: true,
+      data: { evaluations: [] },
+      meta: { requestId: 'test-evaluations-request', page: 1, limit: 20, total: 0, totalPages: 0 },
+    }),
+  ),
+  http.get(`${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId/evaluations/summary`, ({ params }) =>
+    HttpResponse.json({
+      success: true,
+      data: {
+        summary: {
+          occurrenceId: params.occurrenceId,
+          occurrenceStatus: 'RESOLVED',
+          total: 0,
+          negativeCount: 0,
+          negativePercentage: 0,
+          averageRating: null,
+          averageServiceQuality: null,
+          minimumEvaluationsForContestation: 3,
+          negativeThresholdPercentage: 60,
+          eligibleForContestation: false,
+        },
+      },
+      meta: { requestId: 'test-evaluation-summary-request' },
     }),
   ),
   http.get(`${env.apiBaseUrl}/api/v1/occurrences/:occurrenceId`, () =>

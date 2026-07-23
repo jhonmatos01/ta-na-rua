@@ -7,11 +7,14 @@ import { ErrorBoundary } from './components/error-boundary';
 import { AuthProvider } from './features/auth/auth-context';
 import './index.css';
 import { queryClient } from './lib/query-client';
+import { registerServiceWorker } from './lib/register-service-worker';
 import { router } from './router';
 
 const rootElement = document.getElementById('root');
 
 if (!rootElement) throw new Error('Elemento raiz da aplicação não encontrado.');
+
+if (import.meta.env.PROD) registerServiceWorker();
 
 createRoot(rootElement).render(
   <StrictMode>

@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { Button } from '../components/button';
 import { OccurrenceCommunityCard } from '../components/occurrence-community-card';
 import { PublicOccurrenceImage } from '../components/public-occurrence-image';
+import { useAuth } from '../features/auth/auth-context';
+import { useEvaluationSummary } from '../features/evaluations/evaluation-queries';
 import { resolveApiAssetUrl } from '../features/occurrences/occurrence-api';
 import {
   formatPublicDate,
@@ -32,6 +34,11 @@ export function OccurrenceDetailPage() {
   const { occurrenceId } = useParams();
   const occurrenceQuery = usePublicOccurrence(occurrenceId);
   const timelineQuery = usePublicOccurrenceTimeline(occurrenceId);
+  const auth = useAuth();
+  const repairStatus =
+    occurrenceQuery.data !== undefined &&
+    ['CLOSED', 'CONTESTED', 'RESOLVED'].includes(occurrenceQuery.data.status);
+  const evaluationSummaryQuery = useEvaluationSummary(occurrenceId, repairStatus);
 
   if (occurrenceQuery.isPending) return <DetailLoading />;
 
@@ -164,6 +171,59 @@ export function OccurrenceDetailPage() {
           initialConfirmationCount={occurrence.confirmationCount}
           initialPriorityScore={occurrence.priorityScore}
         />
+
+        {repairStatus ? (
+          <section
+            className="mt-6 overflow-hidden rounded-3xl border border-emerald-200 bg-white shadow-card"
+            aria-labelledby="evaluation-summary-title"
+          >
+            <div className="grid gap-6 bg-gradient-to-br from-emerald-50 to-white p-6 sm:grid-cols-[1fr_auto] sm:items-center sm:p-8">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-emerald-700">
+                  Reparo concluído
+                </p>
+                <h2 id="evaluation-summary-title" className="mt-2 text-3xl font-black text-ink">
+                  A comunidade avalia o resultado
+                </h2>
+                <p className="mt-3 max-w-2xl leading-7 text-slate-600">
+                  Quem criou, reportou ou confirmou esta ocorrência pode registrar se o problema foi
+                  realmente resolvido.
+                </p>
+              </div>
+              <Link
+                to={`/avaliar/${occurrence.id}`}
+                className="inline-flex min-h-12 items-center justify-center rounded-xl bg-brand-700 px-5 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-brand-800 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+              >
+                {auth.status === 'authenticated' ? 'Avaliar reparo' : 'Entrar para avaliar'}
+              </Link>
+            </div>
+            {evaluationSummaryQuery.data && evaluationSummaryQuery.data.total > 0 ? (
+              <dl className="grid grid-cols-2 border-t border-slate-200 sm:grid-cols-4">
+                {[
+                  ['Avaliações', String(evaluationSummaryQuery.data.total)],
+                  ['Nota média', evaluationSummaryQuery.data.averageRating?.toFixed(1) ?? '—'],
+                  [
+                    'Problema continua',
+                    `${evaluationSummaryQuery.data.negativePercentage.toFixed(0)}%`,
+                  ],
+                  [
+                    'Qualidade',
+                    evaluationSummaryQuery.data.averageServiceQuality?.toFixed(1) ?? '—',
+                  ],
+                ].map(([label, value]) => (
+                  <div key={label} className="border-slate-200 p-4 text-center not-last:border-r">
+                    <dt className="text-xs font-bold text-slate-500">{label}</dt>
+                    <dd className="mt-1 text-xl font-black text-ink">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : (
+              <p className="border-t border-slate-200 px-6 py-4 text-sm text-slate-600">
+                Seja a primeira pessoa relacionada a avaliar este reparo.
+              </p>
+            )}
+          </section>
+        ) : null}
 
         <section
           className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-card sm:p-8"

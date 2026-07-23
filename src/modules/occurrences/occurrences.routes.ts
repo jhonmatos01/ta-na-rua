@@ -173,6 +173,18 @@ export function createOccurrencesRouter(options: OccurrencesRouterOptions = {}):
     }
   });
 
+  router.get('/pending-evaluations', authenticate, async (request, response, next) => {
+    try {
+      const result = await service.pendingEvaluations(
+        request.auth!,
+        parseInput(occurrenceListQuerySchema, request.query),
+      );
+      response.status(200).json(paginatedResponse(request, result));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get('/:occurrenceId', optionalAuthenticate, async (request, response, next) => {
     try {
       const { occurrenceId } = parseInput(occurrenceIdParamsSchema, request.params);

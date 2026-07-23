@@ -1,6 +1,6 @@
-# Tá na Rua! — aplicativo cidadão (FE‑5)
+# Tá na Rua! — aplicativo cidadão (FE‑6)
 
-Aplicação cidadã responsiva e acessível do projeto. A FE‑5 preserva as jornadas anteriores e acrescenta histórico de ocorrências criadas e confirmadas, notificações paginadas com leitura individual ou em lote e um perfil cidadão ampliado.
+Aplicação cidadã responsiva, acessível e instalável. A FE‑6 preserva as jornadas anteriores e acrescenta avaliação pós-reparo, pendências pessoais, abertura direta por notificação, resumo público e operação como PWA.
 
 ## Pré-requisitos
 
@@ -42,6 +42,7 @@ Abra [http://localhost:5173](http://localhost:5173). Use `localhost`, e não `12
 | `/perfil`                    | autenticado | consulta e atualização dos dados permitidos         |
 | `/minhas-ocorrencias`        | autenticado | ocorrências criadas e confirmadas pela pessoa       |
 | `/notificacoes`              | autenticado | avisos, filtros e controle de leitura               |
+| `/avaliar/:occurrenceId`     | autenticado | criação ou edição da avaliação do reparo            |
 | `/nova-ocorrencia`           | autenticado | foto, localização, duplicidades, revisão e envio    |
 | `/mapa`                      | público     | mapa, filtros, busca e lista pública de ocorrências |
 | `/ocorrencias/:occurrenceId` | público     | detalhe e linha do tempo públicos da ocorrência     |
@@ -74,16 +75,17 @@ A inicialização falha de forma explícita se uma variável obrigatória estive
 
 ## Scripts
 
-| Comando                 | Responsabilidade                    |
-| ----------------------- | ----------------------------------- |
-| `npm run dev`           | inicia o Vite em desenvolvimento    |
-| `npm run lint`          | executa o ESLint                    |
-| `npm run typecheck`     | valida TypeScript estrito           |
-| `npm test`              | executa os testes Vitest/RTL/MSW    |
-| `npm run test:coverage` | mede e valida a cobertura mínima    |
-| `npm run test:e2e`      | executa os cenários Playwright      |
-| `npm run build`         | gera o build de produção            |
-| `npm run validate`      | executa lint, tipos, testes e build |
+| Comando                 | Responsabilidade                       |
+| ----------------------- | -------------------------------------- |
+| `npm run dev`           | inicia o Vite em desenvolvimento       |
+| `npm run lint`          | executa o ESLint                       |
+| `npm run typecheck`     | valida TypeScript estrito              |
+| `npm test`              | executa os testes Vitest/RTL/MSW       |
+| `npm run test:coverage` | mede e valida a cobertura mínima       |
+| `npm run test:e2e`      | executa os cenários Playwright         |
+| `npm run build`         | gera o build de produção               |
+| `npm run pwa:check`     | valida manifesto, SW, offline e ícones |
+| `npm run validate`      | executa lint, tipos, testes e build    |
 
 Na primeira execução dos E2E, instale o navegador de testes com `npx playwright install chromium`.
 
@@ -94,16 +96,18 @@ src/
 |-- components/       componentes reutilizáveis e acessíveis
 |-- config/           validação do ambiente público com Zod
 |-- features/auth/    sessão, contratos e regras de autenticação
+|-- features/evaluations/ contratos e mutações de avaliação
 |-- features/geocoding/ endereço aproximado autenticado
 |-- features/notifications/ contratos e consultas de notificações
 |-- features/occurrences/ contratos, mapa, duplicidades e registro
+|-- features/pwa/     instalação e detecção do modo standalone
 |-- features/status/  contratos e consultas de saúde
 |-- layouts/          estrutura de navegação, conteúdo e rodapé
 |-- lib/              cliente HTTP, erros seguros e TanStack Query
 |-- pages/            páginas correspondentes às rotas públicas
 `-- tests/            MSW, servidor simulado e utilitários de render
 e2e/                  cenários desktop e mobile do Playwright
-public/               manifesto e identidade mínima para preparação PWA
+public/               manifesto, ícones, service worker e fallback offline
 ```
 
 O cliente HTTP adiciona request ID, timeout, cancelamento, cookie de sessão, access token em memória e validação Zod da resposta. Uma resposta 401 tenta uma única renovação compartilhada antes de encerrar a sessão. Senhas, access tokens e refresh tokens não são persistidos em `localStorage` ou `sessionStorage`; mensagens técnicas da API não são exibidas diretamente à pessoa usuária.
@@ -122,6 +126,10 @@ Nos detalhes públicos, `GET /api/v1/occurrences/:id/confirmations/count` manté
 
 O histórico pessoal usa `GET /api/v1/occurrences/mine` para registros próprios e o contrato aditivo `GET /api/v1/occurrences/confirmed-by-me` para confirmações da pessoa autenticada. A segunda resposta permanece sanitizada como resposta pública e não expõe autoria, endereço exato ou coordenadas precisas. As notificações usam os contratos existentes de listagem, contador e leitura; após cada mutação, lista e contador são sincronizados pelo TanStack Query.
 
+A aba **Avaliar reparos** usa o contrato aditivo `GET /api/v1/occurrences/pending-evaluations`, que considera status, vínculo e ausência de avaliação no banco. A criação e edição usam os contratos de avaliações existentes; o navegador não duplica a regra de vínculo, janela de sete dias ou contestação automática. O resumo público contém somente agregados. Imagem não é solicitada porque o contrato atual não oferece upload e o PRD a define como condicional.
+
+O build de produção registra `/sw.js`, disponibiliza manifesto e ícones PNG regulares e `maskable`, e oferece instalação no perfil. O service worker nunca intercepta ou armazena chamadas da API; quando uma navegação falha sem conexão, mostra apenas o fallback estático. Execute `npm run build && npm run pwa:check` para verificar os artefatos.
+
 Como não existe endpoint público de metadados, a lista opcional de categorias é derivada do catálogo público carregado. Se o catálogo estiver indisponível ou não representar todas as categorias, a pessoa pode continuar sem selecionar e deixar a análise do back-end sugerir a classificação. Nenhum contrato da API foi alterado para contornar essa limitação.
 
 ## Escopo e evidências
@@ -132,5 +140,6 @@ Como não existe endpoint público de metadados, a lista opcional de categorias 
 - [Relatório de validação FE‑3](../../docs/FE3_VALIDACAO.md)
 - [Relatório de validação FE‑4](../../docs/FE4_VALIDACAO.md)
 - [Relatório de validação FE‑5](../../docs/FE5_VALIDACAO.md)
+- [Relatório de validação FE‑6](../../docs/FE6_VALIDACAO.md)
 - [Relatório de validação FE‑0](../../docs/FE0_VALIDACAO.md)
 - [Limitações conhecidas FE‑0](../../docs/FE0_LIMITACOES.md)

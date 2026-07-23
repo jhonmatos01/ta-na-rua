@@ -6,10 +6,11 @@ import { PaginationControls } from '../components/pagination-controls';
 import {
   useConfirmedOccurrences,
   useMyOccurrences,
+  usePendingEvaluationOccurrences,
 } from '../features/occurrences/occurrence-queries';
 import { getSafeErrorMessage } from '../lib/api-error';
 
-type ActivityTab = 'confirmed' | 'created';
+type ActivityTab = 'confirmed' | 'created' | 'pending';
 
 function parsePage(value: string | null): number {
   const page = Number(value);
@@ -18,22 +19,33 @@ function parsePage(value: string | null): number {
 
 export function AccountOccurrencesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab: ActivityTab = searchParams.get('tab') === 'confirmed' ? 'confirmed' : 'created';
+  const requestedTab = searchParams.get('tab');
+  const tab: ActivityTab =
+    requestedTab === 'confirmed' || requestedTab === 'pending' ? requestedTab : 'created';
   const page = parsePage(searchParams.get('page'));
   const filters = { page, limit: 6 };
   const createdQuery = useMyOccurrences(filters);
   const confirmedQuery = useConfirmedOccurrences(filters);
-  const query = tab === 'created' ? createdQuery : confirmedQuery;
+  const pendingQuery = usePendingEvaluationOccurrences(filters);
+  const query =
+    tab === 'created' ? createdQuery : tab === 'confirmed' ? confirmedQuery : pendingQuery;
 
   function updateView(nextTab: ActivityTab, nextPage = 1) {
     setSearchParams({ tab: nextTab, page: String(nextPage) });
   }
 
-  const title = tab === 'created' ? 'Ocorrências criadas' : 'Ocorrências confirmadas';
+  const title =
+    tab === 'created'
+      ? 'Ocorrências criadas'
+      : tab === 'confirmed'
+        ? 'Ocorrências confirmadas'
+        : 'Avaliações pendentes';
   const emptyMessage =
     tab === 'created'
       ? 'Você ainda não registrou nenhuma ocorrência.'
-      : 'Você ainda não confirmou nenhuma ocorrência da comunidade.';
+      : tab === 'confirmed'
+        ? 'Você ainda não confirmou nenhuma ocorrência da comunidade.'
+        : 'Você está em dia: nenhum reparo aguarda sua avaliação.';
 
   return (
     <section className="bg-canvas py-8 sm:py-14">
@@ -68,6 +80,7 @@ export function AccountOccurrencesPage() {
             [
               ['created', 'Criadas por mim'],
               ['confirmed', 'Eu também vi'],
+              ['pending', 'Avaliar reparos'],
             ] as const
           ).map(([value, label]) => (
             <button

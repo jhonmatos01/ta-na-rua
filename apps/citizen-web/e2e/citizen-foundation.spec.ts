@@ -191,6 +191,17 @@ async function mockAuthenticatedAccount(page: Page): Promise<void> {
       }),
     }),
   );
+  await page.route(/\/api\/v1\/occurrences\/pending-evaluations(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: { occurrences: [{ ...publicOccurrenceFixture, status: 'RESOLVED' }] },
+        meta: { requestId: 'e2e-pending', page: 1, limit: 6, total: 1, totalPages: 1 },
+      }),
+    }),
+  );
   await page.route('**/api/v1/notifications/unread-count', (route) =>
     route.fulfill({
       status: 200,
@@ -603,4 +614,119 @@ test('lê notificações e mantém o cabeçalho móvel sem sobreposição', asyn
       return { brandRight: brand?.right ?? 0, navigationLeft: navigation?.left ?? 0 };
     });
   expect(headerItems.brandRight).toBeLessThanOrEqual(headerItems.navigationLeft);
+});
+
+test('abre uma avaliação pendente e registra o resultado do reparo', async ({ page }) => {
+  await mockAuthenticatedAccount(page);
+  const resolvedOccurrence = { ...publicOccurrenceFixture, status: 'RESOLVED' };
+  let submitted: unknown;
+  await page.route(/\/api\/v1\/occurrences\/[^/]+\/evaluations\/summary$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          summary: {
+            occurrenceId: publicOccurrenceFixture.id,
+            occurrenceStatus: 'RESOLVED',
+            total: 0,
+            negativeCount: 0,
+            negativePercentage: 0,
+            averageRating: null,
+            averageServiceQuality: null,
+            minimumEvaluationsForContestation: 3,
+            negativeThresholdPercentage: 60,
+            eligibleForContestation: false,
+          },
+        },
+        meta: { requestId: 'e2e-evaluation-summary' },
+      }),
+    }),
+  );
+  await page.route(/\/api\/v1\/occurrences\/[^/]+\/evaluations(?:\?.*)?$/, async (route) => {
+    if (route.request().method() === 'GET') {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: { evaluations: [] },
+          meta: { requestId: 'e2e-evaluations', page: 1, limit: 20, total: 0, totalPages: 0 },
+        }),
+      });
+    }
+    submitted = route.request().postDataJSON();
+    return route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        success: true,
+        data: {
+          evaluation: {
+            id: '72000000-0000-4000-8000-000000000001',
+            occurrenceId: publicOccurrenceFixture.id,
+            rating: 5,
+            problemResolved: true,
+            serviceQuality: null,
+            comment: 'O reparo ficou muito bom.',
+            isMine: true,
+            createdAt: '2026-07-22T12:00:00.000Z',
+            updatedAt: '2026-07-22T12:00:00.000Z',
+          },
+          summary: {
+            occurrenceId: publicOccurrenceFixture.id,
+            occurrenceStatus: 'RESOLVED',
+            total: 1,
+            negativeCount: 0,
+            negativePercentage: 0,
+            averageRating: 5,
+            averageServiceQuality: null,
+            minimumEvaluationsForContestation: 3,
+            negativeThresholdPercentage: 60,
+            eligibleForContestation: false,
+          },
+          occurrenceContested: false,
+        },
+        meta: { requestId: 'e2e-evaluation-created' },
+      }),
+    });
+  });
+  await page.route(
+    /\/api\/v1\/occurrences\/(?!mine|confirmed-by-me|pending-evaluations)[^/?]+$/,
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: { occurrence: resolvedOccurrence },
+          meta: { requestId: 'e2e-resolved-occurrence' },
+        }),
+      }),
+  );
+
+  await page.goto('/minhas-ocorrencias?tab=pending');
+  await expect(page.getByRole('heading', { name: 'Avaliações pendentes' })).toBeVisible();
+  await page.getByText('Avaliar agora').click();
+  await expect(page).toHaveURL(new RegExp(`/avaliar/${publicOccurrenceFixture.id}$`));
+  const rating = page
+    .getByRole('group', { name: 'Nota geral do reparo' })
+    .getByRole('radio', { name: '5' });
+  const resolved = page.getByRole('radio', { name: 'Sim, foi resolvido' });
+  await rating.evaluate((element: HTMLInputElement) => element.click());
+  await resolved.evaluate((element: HTMLInputElement) => element.click());
+  await expect(rating).toBeChecked();
+  await expect(resolved).toBeChecked();
+  await page.getByRole('textbox', { name: /comentário/i }).fill('O reparo ficou muito bom.');
+  await page.getByRole('button', { name: 'Enviar avaliação' }).click();
+
+  await expect(page.getByText('Avaliação enviada com sucesso.')).toBeVisible();
+  expect(submitted).toEqual({
+    rating: 5,
+    problemResolved: true,
+    serviceQuality: null,
+    comment: 'O reparo ficou muito bom.',
+  });
+  await expectNoHorizontalOverflow(page);
 });

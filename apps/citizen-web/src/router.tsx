@@ -57,6 +57,14 @@ export const appRoutes: RouteObject[] = [
             },
           },
           {
+            path: '/avaliar/:occurrenceId',
+            hydrateFallbackElement: <RouteLoadingFallback />,
+            lazy: async () => {
+              const module = await import('./pages/evaluation-page');
+              return { Component: module.EvaluationPage };
+            },
+          },
+          {
             path: '/nova-ocorrencia',
             hydrateFallbackElement: <RouteLoadingFallback />,
             lazy: async () => {

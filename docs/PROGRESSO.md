@@ -774,7 +774,7 @@ Estado: concluída e aprovada pelo usuário em 22 de julho de 2026; publicada pa
 
 ## FE‑5 — Conta e notificações
 
-Estado: concluída e aprovada pelo usuário em 22 de julho de 2026; pronta para publicação na branch `codex/citizen-notifications`.
+Estado: concluída e aprovada pelo usuário em 22 de julho de 2026; publicada para revisão no PR #6.
 
 ### Checklist do PRD de continuação
 
@@ -802,3 +802,33 @@ Estado: concluída e aprovada pelo usuário em 22 de julho de 2026; pronta para 
 - A barra móvel mantém marca compacta, registro, avisos e perfil; o encerramento de sessão também está disponível no perfil.
 - Avaliações pendentes permanecem reservadas para a FE‑6, conforme o recorte do PRD.
 - Relatório completo em [FE5_VALIDACAO.md](FE5_VALIDACAO.md).
+- Branch `codex/citizen-notifications` publicada no PR [#6](https://github.com/jhonmatos01/ta-na-rua/pull/6), a partir do commit `7f6826b`.
+
+## FE‑6 — Avaliação e PWA
+
+Estado: concluída e aprovada pelo usuário em 22 de julho de 2026; pronta para publicação na branch `codex/citizen-evaluations`.
+
+### Checklist do PRD de continuação
+
+- [x] Implementar nota de 1 a 5, confirmação da resolução, qualidade opcional e comentário.
+- [x] Permitir criação somente para cidadão relacionado e status autorizado pela API.
+- [x] Permitir edição da própria avaliação dentro da janela definida pelo back-end.
+- [x] Traduzir vínculo ausente, status inválido, duplicidade, prazo expirado e demais erros da API.
+- [x] Exibir resumo público de avaliações sem dados pessoais.
+- [x] Levar notificações de reparo diretamente ao formulário de avaliação.
+- [x] Adicionar lista autenticada de reparos que ainda aguardam a avaliação do cidadão.
+- [x] Manter respostas pessoais sanitizadas e contratos existentes inalterados.
+- [x] Configurar manifesto, ícones regulares e maskable, instalação e modo standalone.
+- [x] Registrar service worker somente no build de produção, sem armazenar chamadas da API.
+- [x] Implementar fallback offline seguro e verificação automatizada dos artefatos PWA.
+- [x] Aprovar validação completa, E2E e cobertura da fase.
+- [x] Obter validação visual e aprovação final do usuário.
+  - Evidência: o usuário confirmou "Tudo aprovado" após validar a avaliação pós-reparo, o resumo público e a experiência PWA.
+
+### Decisões de compatibilidade
+
+- O endpoint aditivo `GET /api/v1/occurrences/pending-evaluations` evita derivar pendências de notificações paginadas; ele exige `CITIZEN`, usa vínculo real e devolve a projeção pública sanitizada.
+- O envio de imagem na avaliação permanece fora da interface porque o PRD o torna condicional e o contrato atual de avaliações não oferece upload; nenhum contrato existente foi alterado para simular suporte.
+- A API continua sendo a única autoridade para vínculo, status avaliável, janela de edição e contestação automática.
+
+Relatório em [FE6_VALIDACAO.md](FE6_VALIDACAO.md).

@@ -43,6 +43,11 @@ function mockService(): OccurrencesService {
         occurrences: [{ id: randomUUID() }],
         pagination: { page: query.page, limit: query.limit, total: 1, totalPages: 1 },
       }),
+    pendingEvaluations: (_principal, query) =>
+      Promise.resolve({
+        occurrences: [{ id: randomUUID() }],
+        pagination: { page: query.page, limit: query.limit, total: 1, totalPages: 1 },
+      }),
     get: (_principal, occurrenceId) => Promise.resolve({ id: occurrenceId }),
     update: (_principal, occurrenceId, input) => Promise.resolve({ id: occurrenceId, ...input }),
     delete: () => Promise.resolve(),
@@ -80,7 +85,7 @@ describe('rotas HTTP de ocorrencias', () => {
     expect(body.meta).toMatchObject({ page: 2, limit: 20, total: 21, totalPages: 2 });
   });
 
-  it('resolve nearby, map, mine e confirmed-by-me antes da rota parametrizada', async () => {
+  it('resolve nearby, map, mine, confirmed-by-me e pending-evaluations antes da rota parametrizada', async () => {
     const { app, token } = await authenticatedApp();
     await request(app)
       .get('/api/v1/occurrences/nearby?latitude=-12.97&longitude=-38.5')
@@ -103,6 +108,15 @@ describe('rotas HTTP de ocorrencias', () => {
         expect(body.meta).toMatchObject({ page: 1, limit: 10, total: 1, totalPages: 1 });
       });
     await request(app).get('/api/v1/occurrences/confirmed-by-me').expect(401);
+    await request(app)
+      .get('/api/v1/occurrences/pending-evaluations?page=1&limit=10')
+      .set('authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect((response) => {
+        const body = response.body as OccurrenceListBody;
+        expect(body.meta).toMatchObject({ page: 1, limit: 10, total: 1, totalPages: 1 });
+      });
+    await request(app).get('/api/v1/occurrences/pending-evaluations').expect(401);
   });
 
   it('exige autenticacao e imagem inicial na criacao', async () => {
