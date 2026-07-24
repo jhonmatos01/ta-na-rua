@@ -861,3 +861,26 @@ Estado: concluída e aprovada pelo usuário em 24 de julho de 2026; publicada pa
 - Lighthouse aprovado na página inicial e no mapa, com limites explícitos por rota.
 - Nenhuma alteração de banco, migration, contrato existente da API, JWT ou autorização.
 - Branch `codex/citizen-stabilization` publicada no PR [#8](https://github.com/jhonmatos01/ta-na-rua/pull/8), a partir do commit `5d85b9a`.
+
+## PM‑0 — Fundação do Painel da Prefeitura
+
+Estado: implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026;
+pronta para publicação.
+
+### Checklist
+
+- [x] Criar aplicação separada em `apps/municipal-web`.
+- [x] Implementar login e restauração de sessão pelo contrato oficial.
+- [x] Manter o access token apenas em memória e o refresh em cookie `httpOnly`.
+- [x] Restringir o painel a `CITY_OPERATOR`, `MODERATOR` e `ADMIN`.
+- [x] Preservar o isolamento municipal imposto pelo back-end.
+- [x] Consumir resumo, ranking e categorias reais do dashboard.
+- [x] Implementar estados de carregamento, erro e vazio.
+- [x] Criar layout responsivo para desktop e celular.
+- [x] Adicionar imagens locais aos dois chamados determinísticos do seed.
+- [x] Corrigir a incorporação cross-origin das imagens públicas e preservar as demais políticas de segurança.
+- [x] Aprovar lint, tipos, build, seed, schema e integração HTTP local.
+- [x] Obter validação visual do usuário.
+- [ ] Publicar a branch após aprovação explícita.
+
+Relatório em [PM0_VALIDACAO.md](PM0_VALIDACAO.md).

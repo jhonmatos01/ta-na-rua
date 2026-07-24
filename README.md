@@ -1,12 +1,13 @@
-# Ta na Rua! — back-end e aplicativo cidadão
+# Ta na Rua! — plataforma de participação e gestão urbana
 
 API REST da plataforma de inteligencia urbana colaborativa **Ta na Rua!**, implementada a partir do PRD Tecnico Consolidado v1.2.
 
-Estado atual: **back-end MVP concluído e preservado; FE‑0 a FE‑7 publicadas em branches empilhadas; Painel da Prefeitura é a próxima frente**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
+Estado atual: **back-end MVP e aplicativo cidadão FE‑0 a FE‑7 concluídos; fundação do Painel da Prefeitura em desenvolvimento**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
 
 ## O que existe
 
 - aplicação cidadã responsiva e instalável em `apps/citizen-web`, com status real da API, cadastro, login, sessão segura, perfil, mapa público, filtros, detalhes, registro guiado, confirmação comunitária, histórico pessoal, notificações, avaliações pós-reparo, compartilhamento, modo offline seguro, acessibilidade e testes;
+- painel operacional em `apps/municipal-web`, com login exclusivo para perfis da gestão, sessão renovável por cookie `httpOnly`, isolamento municipal e visão geral consumindo indicadores e prioridades reais da API;
 
 - Node.js 24, TypeScript estrito e Express;
 - validacao de ambiente com Zod;
@@ -123,7 +124,7 @@ npm run db:seed
 npm run db:validate
 ```
 
-O seed final cria dados ficticios deterministas, inclusive duracao de resolucao, evento de webhook e item de outbox, e pode ser repetido sem duplicacoes. Ele e bloqueado em producao. Todas as senhas abaixo sao exclusivas do ambiente local e ficam armazenadas somente como Argon2id no PostgreSQL.
+O seed final cria dados ficticios deterministas, inclusive duas imagens locais de demonstração, duracao de resolucao, evento de webhook e item de outbox, e pode ser repetido sem duplicacoes. As imagens versionadas em `fixtures/demo-occurrences` são copiadas para `tmp/uploads` e servidas pela API. O seed e bloqueado em producao. Todas as senhas abaixo sao exclusivas do ambiente local e ficam armazenadas somente como Argon2id no PostgreSQL.
 
 | Perfil/outro cenario | E-mail                           | Senha                | Municipio        |
 | -------------------- | -------------------------------- | -------------------- | ---------------- |
@@ -143,23 +144,25 @@ npm run dev
 
 ## Portas e acessos
 
-| Servico      | Endereco                                |
-| ------------ | --------------------------------------- |
-| API          | http://localhost:3333                   |
-| App cidadão  | http://localhost:5173                   |
-| Swagger UI   | http://localhost:3333/docs              |
-| OpenAPI JSON | http://localhost:3333/docs/openapi.json |
-| Adminer      | http://localhost:8080                   |
-| PostgreSQL   | localhost:5432                          |
+| Servico          | Endereco                                |
+| ---------------- | --------------------------------------- |
+| API              | http://localhost:3333                   |
+| App cidadão      | http://localhost:5173                   |
+| Painel municipal | http://localhost:5174                   |
+| Swagger UI       | http://localhost:3333/docs              |
+| OpenAPI JSON     | http://localhost:3333/docs/openapi.json |
+| Adminer          | http://localhost:8080                   |
+| PostgreSQL       | localhost:5432                          |
 
 ### Interfaces visuais de teste
 
 - **Aplicativo cidadão FE‑7** em `http://localhost:5173`, com início, autenticação, mapa público, detalhes, registro de ocorrências, confirmação comunitária, histórico pessoal, notificações, avaliação pós-reparo, instalação PWA e perfil. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
+- **Painel da Prefeitura PM‑0** em `http://localhost:5174`, com acesso operacional, sessão segura, indicadores municipais, prioridades e distribuição por categoria. Inicie-o com `npm install` e `npm run dev` dentro de `apps/municipal-web`.
 - **Swagger UI** e a interface principal para testar a API: autentique com `Authorize`, preencha os formularios e execute cada rota, inclusive uploads de imagem.
 - **Adminer** permite inspecionar visualmente o PostgreSQL/PostGIS com os valores de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` do `.env` local.
 - A pasta `api-client` pode ser aberta no aplicativo **Bruno** para executar os cenarios agrupados por modulo.
 
-A FE‑7 conclui e estabiliza o aplicativo cidadão; interfaces de operador e administrador permanecem fora deste front-end. Consulte [docs/FE7_VALIDACAO.md](docs/FE7_VALIDACAO.md).
+A FE‑7 conclui e estabiliza o aplicativo cidadão. O painel operacional separado começou na PM‑0; consulte [docs/PM0_VALIDACAO.md](docs/PM0_VALIDACAO.md).
 
 ## Variaveis de ambiente da fase
 
@@ -454,6 +457,8 @@ tests/
 drizzle/
 api-client/
 apps/citizen-web/
+apps/municipal-web/
+fixtures/demo-occurrences/
 docs/
 Dockerfile
 docker-compose.production.yml

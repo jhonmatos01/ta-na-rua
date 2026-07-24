@@ -114,6 +114,15 @@ describe('aplicacao HTTP', () => {
     expect(body.meta.requestId).toBe(response.headers['x-request-id']);
   });
 
+  it('permite incorporar uploads publicos sem relaxar as demais respostas', async () => {
+    const app = createApp({ databaseHealthCheck });
+    const uploadResponse = await request(app).get('/uploads/arquivo-inexistente.png').expect(404);
+    const healthResponse = await request(app).get('/health').expect(200);
+
+    expect(uploadResponse.headers['cross-origin-resource-policy']).toBe('cross-origin');
+    expect(healthResponse.headers['cross-origin-resource-policy']).toBe('same-origin');
+  });
+
   it('retorna 400 padronizado para JSON malformado', async () => {
     const response = await request(createApp({ databaseHealthCheck }))
       .post('/health')
