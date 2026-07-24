@@ -891,7 +891,7 @@ Branch `codex/municipal-dashboard-foundation` publicada no PR
 ## PM‑1 — Fila operacional de ocorrências
 
 Estado: implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de
-2026; pronta para publicação.
+2026; publicada para revisão no PR #10.
 
 ### Checklist
 
@@ -905,6 +905,9 @@ Estado: implementação técnica e validação visual aprovadas pelo usuário em
 - [x] Manter Visão geral e Ocorrências acessíveis na navegação mobile.
 - [x] Aprovar lint, tipos, build e validação integrada no navegador.
 - [x] Obter validação visual do usuário.
-- [ ] Publicar a branch após aprovação explícita.
+- [x] Publicar a branch após aprovação explícita.
 
 Relatório em [PM1_VALIDACAO.md](PM1_VALIDACAO.md).
+
+Branch `codex/municipal-operations-queue` publicada no PR
+[#10](https://github.com/jhonmatos01/ta-na-rua/pull/10), a partir do commit `5d0e042`.

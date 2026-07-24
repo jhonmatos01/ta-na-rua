@@ -2,8 +2,9 @@
 
 ## Estado
 
-Implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026 na
-branch `codex/municipal-operations-queue`.
+Implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026 e
+publicadas na branch `codex/municipal-operations-queue`, no PR
+[#10](https://github.com/jhonmatos01/ta-na-rua/pull/10).
 
 ## Entrega
 
