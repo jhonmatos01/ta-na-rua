@@ -88,6 +88,21 @@ export function createStatusRouter(options: StatusRouterOptions = {}): Router {
   );
 
   router.get(
+    '/:occurrenceId/status-capabilities',
+    authenticate,
+    operational,
+    async (request, response, next) => {
+      try {
+        const { occurrenceId } = parseInput(statusOccurrenceIdParamsSchema, request.params);
+        const result = await service.capabilities(request.auth!, occurrenceId);
+        response.status(200).json(createSuccessResponse(request, result));
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  router.get(
     '/:occurrenceId/status-history',
     optionalAuthenticate,
     async (request, response, next) => {

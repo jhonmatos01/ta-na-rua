@@ -412,6 +412,17 @@ export class PostgresStatusRepository implements StatusRepository {
     }
   }
 
+  public async findOperational(occurrenceId: string): Promise<LockedStatusOccurrence | null> {
+    const result = await pool.query<StatusOccurrenceRow>(
+      `SELECT ${statusOccurrenceColumns}
+         FROM occurrences
+        WHERE id = $1 AND deleted_at IS NULL`,
+      [occurrenceId],
+    );
+    const row = result.rows[0];
+    return row === undefined ? null : mapOccurrence(row);
+  }
+
   public async findVisibility(occurrenceId: string): Promise<StatusOccurrenceVisibility | null> {
     const result = await pool.query<
       QueryResultRow & {

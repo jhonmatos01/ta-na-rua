@@ -54,7 +54,7 @@ function occurrence(overrides: Partial<LockedStatusOccurrence> = {}): LockedStat
 }
 
 class FakeStatusRepository implements StatusRepository {
-  public current = occurrence();
+  public current: LockedStatusOccurrence | null = occurrence();
   public transitionResult: StatusTransitionResult | null = null;
   public assignmentResult: AssignmentResult | null = null;
   public visibility: StatusOccurrenceVisibility | null = {
@@ -80,6 +80,7 @@ class FakeStatusRepository implements StatusRepository {
     prepare: PrepareStatusTransition,
   ): Promise<StatusTransitionResult> {
     if (this.transitionResult !== null) return Promise.resolve(this.transitionResult);
+    if (this.current === null) return Promise.resolve({ kind: 'occurrence_not_found' });
     return Promise.resolve({
       kind: 'updated',
       occurrence: { ...this.current, ...prepare(this.current) },
@@ -88,6 +89,7 @@ class FakeStatusRepository implements StatusRepository {
 
   public assign(_data: AssignmentData, prepare: PrepareAssignment): Promise<AssignmentResult> {
     if (this.assignmentResult !== null) return Promise.resolve(this.assignmentResult);
+    if (this.current === null) return Promise.resolve({ kind: 'occurrence_not_found' });
     const prepared = prepare(this.current);
     return Promise.resolve({
       kind: 'updated',
@@ -97,6 +99,10 @@ class FakeStatusRepository implements StatusRepository {
         expectedResolutionAt: prepared.expectedResolutionAt,
       },
     });
+  }
+
+  public findOperational(): Promise<LockedStatusOccurrence | null> {
+    return Promise.resolve(this.current);
   }
 
   public findVisibility(): Promise<StatusOccurrenceVisibility | null> {
@@ -261,6 +267,58 @@ describe('DefaultStatusService', () => {
     await expect(
       service(repository).assign(principal(), occurrenceId, { departmentId }, context),
     ).rejects.toMatchObject<AppError>({ statusCode: 409, code: 'OCCURRENCE_NOT_ASSIGNABLE' });
+  });
+
+  it('expõe capacidades sem duplicar a máquina de estados no cliente', async () => {
+    const repository = new FakeStatusRepository();
+    const operator = (await service(repository).capabilities(principal(), occurrenceId)) as {
+      actions: Array<{ status: string; requiredFields: string[] }>;
+      canAssign: boolean;
+      canDelete: boolean;
+    };
+    expect(operator).toMatchObject({
+      actions: [
+        {
+          status: 'FORWARDED',
+          requiredFields: ['departmentId', 'expectedResolutionAt'],
+        },
+      ],
+      canAssign: true,
+      canDelete: false,
+    });
+
+    repository.current = occurrence({ status: 'PENDING_REVIEW' });
+    const moderator = (await service(repository).capabilities(
+      principal({ role: 'MODERATOR', municipalityId: null }),
+      occurrenceId,
+    )) as {
+      actions: Array<{ status: string; requiredFields: string[] }>;
+      canAssign: boolean;
+      canDelete: boolean;
+    };
+    expect(moderator).toMatchObject({
+      actions: [
+        { status: 'PUBLISHED', requiredFields: [] },
+        { status: 'REJECTED', requiredFields: ['reason'] },
+        {
+          status: 'DUPLICATE',
+          requiredFields: ['duplicateOfOccurrenceId', 'reason'],
+        },
+      ],
+      canAssign: false,
+      canDelete: true,
+    });
+  });
+
+  it('protege capacidades por existência e município', async () => {
+    const repository = new FakeStatusRepository();
+    await expect(
+      service(repository).capabilities(principal({ municipalityId: randomUUID() }), occurrenceId),
+    ).rejects.toMatchObject<AppError>({ statusCode: 403, code: 'MUNICIPALITY_FORBIDDEN' });
+    repository.current = null;
+    await expect(
+      service(repository).capabilities(principal(), occurrenceId),
+    ).rejects.toMatchObject<AppError>({ statusCode: 404, code: 'OCCURRENCE_NOT_FOUND' });
   });
 
   it('oculta motivo e autor da mudanca no historico publico', async () => {

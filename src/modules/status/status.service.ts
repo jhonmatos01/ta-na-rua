@@ -2,7 +2,11 @@ import { AppError } from '../../shared/errors/app-error.js';
 import type { RequestContext } from '../auth/auth.types.js';
 import type { RequestPrincipal } from '../occurrences/occurrences.types.js';
 import type { PriorityService } from '../confirmations/priority.service.js';
-import { canRoleTransition, isValidStatusTransition } from './status-machine.js';
+import {
+  canRoleTransition,
+  isValidStatusTransition,
+  validStatusTransitions,
+} from './status-machine.js';
 import type {
   UpdateOccurrenceAssignmentInput,
   UpdateOccurrenceStatusInput,
@@ -35,6 +39,32 @@ const assignmentStatuses = new Set([
   'IN_PROGRESS',
   'CONTESTED',
 ]);
+
+type StatusActionField =
+  | 'departmentId'
+  | 'duplicateOfOccurrenceId'
+  | 'expectedResolutionAt'
+  | 'reason'
+  | 'resolutionDescription'
+  | 'scheduledFor';
+
+function requiredFields(
+  previousStatus: LockedStatusOccurrence['status'],
+  newStatus: LockedStatusOccurrence['status'],
+): StatusActionField[] {
+  const fields: StatusActionField[] = [];
+  if (newStatus === 'FORWARDED') fields.push('departmentId', 'expectedResolutionAt');
+  if (newStatus === 'SCHEDULED') fields.push('scheduledFor');
+  if (newStatus === 'RESOLVED') fields.push('resolutionDescription');
+  if (newStatus === 'DUPLICATE') fields.push('duplicateOfOccurrenceId');
+  const reopening =
+    (terminalStatuses.has(previousStatus) && reopenTargets.has(newStatus)) ||
+    previousStatus === 'CONTESTED';
+  if (['REJECTED', 'DUPLICATE', 'CONTESTED'].includes(newStatus) || reopening) {
+    fields.push('reason');
+  }
+  return fields;
+}
 
 function serialize(occurrence: LockedStatusOccurrence) {
   return {
@@ -151,6 +181,21 @@ export class DefaultStatusService implements StatusService {
       );
     }
     return { occurrence: serialize(result.occurrence) };
+  }
+
+  public async capabilities(principal: RequestPrincipal, occurrenceId: string): Promise<unknown> {
+    this.requireOperational(principal);
+    const occurrence = await this.repository.findOperational(occurrenceId);
+    if (occurrence === null) this.notFound();
+    this.requireMunicipality(principal, occurrence.municipalityId);
+    return {
+      occurrence: serialize(occurrence),
+      actions: validStatusTransitions[occurrence.status]
+        .filter((status) => canRoleTransition(principal.role, occurrence.status, status))
+        .map((status) => ({ status, requiredFields: requiredFields(occurrence.status, status) })),
+      canAssign: assignmentStatuses.has(occurrence.status),
+      canDelete: principal.role === 'ADMIN' || principal.role === 'MODERATOR',
+    };
   }
 
   public async history(

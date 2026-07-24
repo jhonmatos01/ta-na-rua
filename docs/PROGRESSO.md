@@ -911,3 +911,27 @@ Relatório em [PM1_VALIDACAO.md](PM1_VALIDACAO.md).
 
 Branch `codex/municipal-operations-queue` publicada no PR
 [#10](https://github.com/jhonmatos01/ta-na-rua/pull/10), a partir do commit `5d0e042`.
+
+## PM‑2 — Revisão e operação dos chamados
+
+Estado: implementação técnica, contrato aditivo e validação visual aprovados pelo usuário em
+24 de julho de 2026; pronta para publicação.
+
+### Checklist
+
+- [x] Manter a máquina de estados e as permissões exclusivamente no back-end.
+- [x] Criar endpoint aditivo de capacidades operacionais.
+- [x] Expor transições permitidas e campos exigidos para perfil e estado atuais.
+- [x] Implementar mudança de status com motivo interno e mensagem pública separados.
+- [x] Implementar encaminhamento, atribuição e reatribuição a departamento ativo.
+- [x] Restringir atribuição do operador ao próprio município.
+- [x] Implementar exclusão lógica somente para `MODERATOR` e `ADMIN`.
+- [x] Exigir confirmação textual antes da exclusão.
+- [x] Atualizar fila, detalhe e histórico após mutações.
+- [x] Documentar o novo contrato no OpenAPI.
+- [x] Aprovar 210 testes do back-end, lint e builds.
+- [x] Validar perfis, campos condicionais, desktop e mobile no navegador.
+- [x] Obter validação visual do usuário.
+- [ ] Publicar a branch após aprovação explícita.
+
+Relatório em [PM2_VALIDACAO.md](PM2_VALIDACAO.md).

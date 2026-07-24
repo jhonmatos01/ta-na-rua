@@ -185,18 +185,90 @@ const occurrenceTimelineSchema = z.object({
   }),
 });
 
+const statusActionFieldSchema = z.enum([
+  'departmentId',
+  'duplicateOfOccurrenceId',
+  'expectedResolutionAt',
+  'reason',
+  'resolutionDescription',
+  'scheduledFor',
+]);
+
+const statusOccurrenceSchema = z.object({
+  id: z.uuid(),
+  protocol: z.string().min(1),
+  status: occurrenceStatusSchema,
+  municipalityId: z.uuid(),
+  assignedDepartmentId: z.uuid().nullable(),
+  assignedBy: z.uuid().nullable(),
+  assignedAt: z.iso.datetime().nullable(),
+  expectedResolutionAt: z.iso.datetime().nullable(),
+  scheduledFor: z.iso.datetime().nullable(),
+  resolutionDescription: z.string().nullable(),
+  resolvedAt: z.iso.datetime().nullable(),
+  resolvedBy: z.uuid().nullable(),
+  closedAt: z.iso.datetime().nullable(),
+  closedBy: z.uuid().nullable(),
+  duplicateOfOccurrenceId: z.uuid().nullable(),
+  priorityScore: z.number().min(0).max(100),
+});
+
+const statusCapabilitiesSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    occurrence: statusOccurrenceSchema,
+    actions: z.array(
+      z.object({
+        status: occurrenceStatusSchema,
+        requiredFields: z.array(statusActionFieldSchema),
+      }),
+    ),
+    canAssign: z.boolean(),
+    canDelete: z.boolean(),
+  }),
+});
+
+const departmentSchema = z.object({
+  id: z.uuid(),
+  municipalityId: z.uuid(),
+  name: z.string().min(1),
+  description: z.string().nullable(),
+  active: z.boolean(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+
+const departmentListSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    departments: z.array(departmentSchema),
+    pagination: z.object({
+      page: z.number().int().positive(),
+      limit: z.number().int().positive(),
+      total: z.number().int().nonnegative(),
+      totalPages: z.number().int().nonnegative(),
+    }),
+  }),
+});
+
+const statusMutationSchema = z.object({
+  success: z.literal(true),
+  data: z.object({ occurrence: statusOccurrenceSchema }),
+});
+
 export type SessionUser = z.infer<typeof userSchema>;
 export type DashboardSummary = z.infer<typeof summarySchema>['data']['summary'];
 export type RankingItem = z.infer<typeof rankingSchema>['data']['occurrences'][number];
 export type CategoryItem = z.infer<typeof categorySchema>['data']['categories'][number];
-export type NeighborhoodItem = z.infer<
-  typeof neighborhoodSchema
->['data']['neighborhoods'][number];
+export type NeighborhoodItem = z.infer<typeof neighborhoodSchema>['data']['neighborhoods'][number];
 export type OccurrenceStatus = z.infer<typeof occurrenceStatusSchema>;
 export type OperationalOccurrence = z.infer<typeof occurrenceSchema>;
 export type OccurrenceTimelineItem = z.infer<
   typeof occurrenceTimelineSchema
 >['data']['timeline'][number];
+export type StatusCapabilities = z.infer<typeof statusCapabilitiesSchema>['data'];
+export type StatusActionField = z.infer<typeof statusActionFieldSchema>;
+export type Department = z.infer<typeof departmentSchema>;
 
 export interface OccurrenceFilters {
   status?: OccurrenceStatus;
@@ -241,7 +313,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
 interface RequestOptions<TSchema extends z.ZodType> {
   schema: TSchema;
-  method?: 'GET' | 'POST';
+  method?: 'DELETE' | 'GET' | 'PATCH' | 'POST';
   body?: Record<string, unknown>;
   auth?: boolean;
   retryUnauthorized?: boolean;
@@ -395,6 +467,87 @@ export async function getOccurrenceDetail(occurrenceId: string) {
     occurrence: occurrence.data.occurrence,
     timeline: timeline.data.timeline,
   };
+}
+
+export async function getStatusCapabilities(occurrenceId: string) {
+  const response = await request(`/api/v1/occurrences/${occurrenceId}/status-capabilities`, {
+    auth: true,
+    schema: statusCapabilitiesSchema,
+  });
+  return response.data;
+}
+
+export async function listActiveDepartments() {
+  const response = await request('/api/v1/departments?active=true&limit=100', {
+    auth: true,
+    schema: departmentListSchema,
+  });
+  return response.data.departments;
+}
+
+export interface StatusTransitionInput {
+  status: OccurrenceStatus;
+  reason?: string;
+  publicMessage?: string;
+  departmentId?: string;
+  expectedResolutionAt?: string;
+  scheduledFor?: string;
+  resolutionDescription?: string;
+  duplicateOfOccurrenceId?: string;
+}
+
+export async function transitionOccurrenceStatus(
+  occurrenceId: string,
+  input: StatusTransitionInput,
+) {
+  return request(`/api/v1/occurrences/${occurrenceId}/status`, {
+    method: 'PATCH',
+    auth: true,
+    schema: statusMutationSchema,
+    body: {
+      status: input.status,
+      ...(input.reason ? { reason: input.reason } : {}),
+      ...(input.publicMessage ? { publicMessage: input.publicMessage } : {}),
+      ...(input.departmentId ? { departmentId: input.departmentId } : {}),
+      ...(input.expectedResolutionAt ? { expectedResolutionAt: input.expectedResolutionAt } : {}),
+      ...(input.scheduledFor ? { scheduledFor: input.scheduledFor } : {}),
+      ...(input.resolutionDescription
+        ? { resolutionDescription: input.resolutionDescription }
+        : {}),
+      ...(input.duplicateOfOccurrenceId
+        ? { duplicateOfOccurrenceId: input.duplicateOfOccurrenceId }
+        : {}),
+    },
+  });
+}
+
+export interface AssignmentInput {
+  departmentId: string;
+  expectedResolutionAt?: string;
+  reason?: string;
+  publicMessage?: string;
+}
+
+export async function assignOccurrence(occurrenceId: string, input: AssignmentInput) {
+  return request(`/api/v1/occurrences/${occurrenceId}/assignment`, {
+    method: 'PATCH',
+    auth: true,
+    schema: statusMutationSchema,
+    body: {
+      departmentId: input.departmentId,
+      ...(input.expectedResolutionAt ? { expectedResolutionAt: input.expectedResolutionAt } : {}),
+      ...(input.reason ? { reason: input.reason } : {}),
+      ...(input.publicMessage ? { publicMessage: input.publicMessage } : {}),
+    },
+  });
+}
+
+export async function deleteOccurrence(occurrenceId: string): Promise<void> {
+  await request(`/api/v1/occurrences/${occurrenceId}`, {
+    method: 'DELETE',
+    auth: true,
+    schema: z.undefined(),
+  });
 }
 
 export function resolveAssetUrl(value: string): string | null {
