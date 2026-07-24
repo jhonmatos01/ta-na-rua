@@ -2,8 +2,10 @@
 
 ## Estado
 
-Implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026 na
-branch `codex/municipal-heatmap-analytics`. Pronta para commit, publicação e abertura do PR.
+Implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026;
+publicada para revisão no PR
+[#12](https://github.com/jhonmatos01/ta-na-rua/pull/12), na branch
+`codex/municipal-heatmap-analytics`.
 
 ## Escopo entregue
 

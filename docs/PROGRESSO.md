@@ -942,7 +942,7 @@ Branch `codex/municipal-review-actions` publicada no PR
 ## PM‑3 — Mapa de calor e análise territorial
 
 Estado: implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026;
-pronta para publicação.
+publicada para revisão no PR #12.
 
 ### Checklist
 
@@ -958,6 +958,9 @@ pronta para publicação.
 - [x] Isolar o motor cartográfico em carregamento sob demanda.
 - [x] Aprovar lint, tipos, builds, 210 testes e validação integrada no navegador.
 - [x] Obter validação visual do usuário.
-- [ ] Publicar a branch após aprovação explícita.
+- [x] Publicar a branch após aprovação explícita.
 
 Relatório em [PM3_VALIDACAO.md](PM3_VALIDACAO.md).
+
+Branch `codex/municipal-heatmap-analytics` publicada no PR
+[#12](https://github.com/jhonmatos01/ta-na-rua/pull/12), a partir do commit `c4c2409`.
