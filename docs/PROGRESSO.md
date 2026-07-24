@@ -915,7 +915,7 @@ Branch `codex/municipal-operations-queue` publicada no PR
 ## PM‑2 — Revisão e operação dos chamados
 
 Estado: implementação técnica, contrato aditivo e validação visual aprovados pelo usuário em
-24 de julho de 2026; pronta para publicação.
+24 de julho de 2026; publicada para revisão no PR #11.
 
 ### Checklist
 
@@ -932,6 +932,9 @@ Estado: implementação técnica, contrato aditivo e validação visual aprovado
 - [x] Aprovar 210 testes do back-end, lint e builds.
 - [x] Validar perfis, campos condicionais, desktop e mobile no navegador.
 - [x] Obter validação visual do usuário.
-- [ ] Publicar a branch após aprovação explícita.
+- [x] Publicar a branch após aprovação explícita.
 
 Relatório em [PM2_VALIDACAO.md](PM2_VALIDACAO.md).
+
+Branch `codex/municipal-review-actions` publicada no PR
+[#11](https://github.com/jhonmatos01/ta-na-rua/pull/11), a partir do commit `d1fcea3`.

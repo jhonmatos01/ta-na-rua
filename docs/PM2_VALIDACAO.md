@@ -2,8 +2,10 @@
 
 ## Estado
 
-Implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026 na
-branch `codex/municipal-review-actions`.
+Implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026;
+publicada para revisão no PR
+[#11](https://github.com/jhonmatos01/ta-na-rua/pull/11), na branch
+`codex/municipal-review-actions`.
 
 ## Incompatibilidade resolvida
 
