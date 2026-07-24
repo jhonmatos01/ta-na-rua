@@ -99,6 +99,36 @@ const neighborhoodSchema = z.object({
   }),
 });
 
+const statusGroupSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    statuses: z.array(
+      z.object({
+        key: z.string().nullable(),
+        name: z.string().min(1),
+        count: z.number().int().nonnegative(),
+        percentage: z.number().nonnegative(),
+      }),
+    ),
+  }),
+});
+
+const heatmapSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    filters: filtersSchema,
+    cellSizeMeters: z.number().int().positive(),
+    cells: z.array(
+      z.object({
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
+        occurrenceCount: z.number().int().positive(),
+        averagePriorityScore: z.number().min(0).max(100),
+      }),
+    ),
+  }),
+});
+
 const occurrenceStatusSchema = z.enum([
   'PENDING_REVIEW',
   'PUBLISHED',
@@ -261,6 +291,8 @@ export type DashboardSummary = z.infer<typeof summarySchema>['data']['summary'];
 export type RankingItem = z.infer<typeof rankingSchema>['data']['occurrences'][number];
 export type CategoryItem = z.infer<typeof categorySchema>['data']['categories'][number];
 export type NeighborhoodItem = z.infer<typeof neighborhoodSchema>['data']['neighborhoods'][number];
+export type StatusGroupItem = z.infer<typeof statusGroupSchema>['data']['statuses'][number];
+export type HeatmapCell = z.infer<typeof heatmapSchema>['data']['cells'][number];
 export type OccurrenceStatus = z.infer<typeof occurrenceStatusSchema>;
 export type OperationalOccurrence = z.infer<typeof occurrenceSchema>;
 export type OccurrenceTimelineItem = z.infer<
@@ -278,6 +310,14 @@ export interface OccurrenceFilters {
   endDate?: string;
   page: number;
   limit?: number;
+}
+
+export interface DashboardFilters {
+  categoryId?: string;
+  neighborhoodId?: string;
+  status?: OccurrenceStatus;
+  startDate?: string;
+  endDate?: string;
 }
 
 let accessToken: string | null = null;
@@ -428,6 +468,39 @@ export async function getOperationsFilterOptions() {
   return {
     categories: categories.data.categories,
     neighborhoods: neighborhoods.data.neighborhoods,
+  };
+}
+
+function dashboardQuery(filters: DashboardFilters): string {
+  const query = new URLSearchParams();
+  if (filters.categoryId) query.set('categoryId', filters.categoryId);
+  if (filters.neighborhoodId) query.set('neighborhoodId', filters.neighborhoodId);
+  if (filters.status) query.set('status', filters.status);
+  if (filters.startDate) query.set('startDate', `${filters.startDate}T00:00:00.000Z`);
+  if (filters.endDate) query.set('endDate', `${filters.endDate}T23:59:59.999Z`);
+  const value = query.toString();
+  return value ? `?${value}` : '';
+}
+
+export async function getHeatmapAnalytics(filters: DashboardFilters) {
+  const query = dashboardQuery(filters);
+  const [summary, heatmap, neighborhoods, categories, statuses] = await Promise.all([
+    request(`/api/v1/dashboard/summary${query}`, { auth: true, schema: summarySchema }),
+    request(`/api/v1/dashboard/heatmap${query}`, { auth: true, schema: heatmapSchema }),
+    request(`/api/v1/dashboard/by-neighborhood${query}`, {
+      auth: true,
+      schema: neighborhoodSchema,
+    }),
+    request(`/api/v1/dashboard/by-category${query}`, { auth: true, schema: categorySchema }),
+    request(`/api/v1/dashboard/by-status${query}`, { auth: true, schema: statusGroupSchema }),
+  ]);
+  return {
+    summary: summary.data.summary,
+    cells: heatmap.data.cells,
+    cellSizeMeters: heatmap.data.cellSizeMeters,
+    neighborhoods: neighborhoods.data.neighborhoods,
+    categories: categories.data.categories,
+    statuses: statuses.data.statuses,
   };
 }
 

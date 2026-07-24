@@ -938,3 +938,26 @@ Relatório em [PM2_VALIDACAO.md](PM2_VALIDACAO.md).
 
 Branch `codex/municipal-review-actions` publicada no PR
 [#11](https://github.com/jhonmatos01/ta-na-rua/pull/11), a partir do commit `d1fcea3`.
+
+## PM‑3 — Mapa de calor e análise territorial
+
+Estado: implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026;
+pronta para publicação.
+
+### Checklist
+
+- [x] Ativar o mapa de calor na navegação municipal.
+- [x] Reutilizar MapLibre e o mapa viário aprovado no aplicativo cidadão.
+- [x] Consumir células agregadas de 250 metros do dashboard.
+- [x] Implementar camadas de calor, células proporcionais e zoom.
+- [x] Implementar filtros por categoria, bairro, status e período.
+- [x] Persistir o recorte aplicado na URL.
+- [x] Exibir resumo, bairros, categorias e distribuição por status.
+- [x] Consolidar bairros homônimos vindos de cadastro e texto livre.
+- [x] Preservar escopo municipal e privacidade definidos pelo back-end.
+- [x] Isolar o motor cartográfico em carregamento sob demanda.
+- [x] Aprovar lint, tipos, builds, 210 testes e validação integrada no navegador.
+- [x] Obter validação visual do usuário.
+- [ ] Publicar a branch após aprovação explícita.
+
+Relatório em [PM3_VALIDACAO.md](PM3_VALIDACAO.md).
