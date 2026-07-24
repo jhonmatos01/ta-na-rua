@@ -85,10 +85,128 @@ const categorySchema = z.object({
   }),
 });
 
+const neighborhoodSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    neighborhoods: z.array(
+      z.object({
+        key: z.string().nullable(),
+        name: z.string().min(1),
+        count: z.number().int().nonnegative(),
+        percentage: z.number().nonnegative(),
+      }),
+    ),
+  }),
+});
+
+const occurrenceStatusSchema = z.enum([
+  'PENDING_REVIEW',
+  'PUBLISHED',
+  'FORWARDED',
+  'ACKNOWLEDGED',
+  'UNDER_ANALYSIS',
+  'SCHEDULED',
+  'IN_PROGRESS',
+  'RESOLVED',
+  'CONTESTED',
+  'CLOSED',
+  'REJECTED',
+  'DUPLICATE',
+]);
+
+const occurrenceImageSchema = z.object({
+  id: z.uuid(),
+  url: z.string().min(1),
+  mimeType: z.string().min(1),
+  imageType: z.string().min(1),
+  moderationStatus: z.string().min(1),
+  createdAt: z.iso.datetime(),
+});
+
+const occurrenceSchema = z.object({
+  id: z.uuid(),
+  protocol: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string().nullable(),
+  category: z.object({ id: z.uuid(), name: z.string().nullable() }).nullable(),
+  municipality: z.object({ id: z.uuid(), name: z.string().min(1) }),
+  neighborhood: z
+    .union([z.object({ id: z.uuid(), name: z.string().nullable() }), z.string().min(1)])
+    .nullable(),
+  status: occurrenceStatusSchema,
+  severity: z.number().nullable(),
+  priorityScore: z.number().min(0).max(100),
+  riskLevel: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).nullable(),
+  confirmationCount: z.number().int().nonnegative(),
+  anonymousPublication: z.boolean(),
+  images: z.array(occurrenceImageSchema),
+  firstReportedAt: z.iso.datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+  address: z.string().nullable(),
+  location: z.object({
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+    accuracy: z.number().nonnegative().nullable().optional(),
+    approximate: z.boolean(),
+  }),
+});
+
+const occurrenceListSchema = z.object({
+  success: z.literal(true),
+  data: z.object({ occurrences: z.array(occurrenceSchema) }),
+  meta: z.object({
+    requestId: z.string().min(1),
+    page: z.number().int().positive(),
+    limit: z.number().int().positive(),
+    total: z.number().int().nonnegative(),
+    totalPages: z.number().int().nonnegative(),
+  }),
+});
+
+const occurrenceDetailSchema = z.object({
+  success: z.literal(true),
+  data: z.object({ occurrence: occurrenceSchema }),
+});
+
+const occurrenceTimelineSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    timeline: z.array(
+      z.object({
+        id: z.uuid(),
+        previousStatus: occurrenceStatusSchema.nullable(),
+        newStatus: occurrenceStatusSchema,
+        publicMessage: z.string().nullable(),
+        reason: z.string().nullable().optional(),
+        createdAt: z.iso.datetime(),
+      }),
+    ),
+  }),
+});
+
 export type SessionUser = z.infer<typeof userSchema>;
 export type DashboardSummary = z.infer<typeof summarySchema>['data']['summary'];
 export type RankingItem = z.infer<typeof rankingSchema>['data']['occurrences'][number];
 export type CategoryItem = z.infer<typeof categorySchema>['data']['categories'][number];
+export type NeighborhoodItem = z.infer<
+  typeof neighborhoodSchema
+>['data']['neighborhoods'][number];
+export type OccurrenceStatus = z.infer<typeof occurrenceStatusSchema>;
+export type OperationalOccurrence = z.infer<typeof occurrenceSchema>;
+export type OccurrenceTimelineItem = z.infer<
+  typeof occurrenceTimelineSchema
+>['data']['timeline'][number];
+
+export interface OccurrenceFilters {
+  status?: OccurrenceStatus;
+  category?: string;
+  neighborhood?: string;
+  startDate?: string;
+  endDate?: string;
+  page: number;
+  limit?: number;
+}
 
 let accessToken: string | null = null;
 let refreshHandler: (() => Promise<string | null>) | null = null;
@@ -228,6 +346,64 @@ export async function getDashboard() {
     ranking: ranking.data.occurrences,
     categories: categories.data.categories,
   };
+}
+
+export async function getOperationsFilterOptions() {
+  const [categories, neighborhoods] = await Promise.all([
+    request('/api/v1/dashboard/by-category', { auth: true, schema: categorySchema }),
+    request('/api/v1/dashboard/by-neighborhood', { auth: true, schema: neighborhoodSchema }),
+  ]);
+  return {
+    categories: categories.data.categories,
+    neighborhoods: neighborhoods.data.neighborhoods,
+  };
+}
+
+export async function listOccurrences(filters: OccurrenceFilters) {
+  const query = new URLSearchParams({
+    page: String(filters.page),
+    limit: String(filters.limit ?? 8),
+  });
+  if (filters.status) query.set('status', filters.status);
+  if (filters.category) query.set('category', filters.category);
+  if (filters.neighborhood) query.set('neighborhood', filters.neighborhood);
+  if (filters.startDate) query.set('startDate', `${filters.startDate}T00:00:00.000Z`);
+  if (filters.endDate) query.set('endDate', `${filters.endDate}T23:59:59.999Z`);
+
+  const response = await request(`/api/v1/occurrences?${query.toString()}`, {
+    auth: true,
+    schema: occurrenceListSchema,
+  });
+  return {
+    occurrences: response.data.occurrences,
+    pagination: response.meta,
+  };
+}
+
+export async function getOccurrenceDetail(occurrenceId: string) {
+  const [occurrence, timeline] = await Promise.all([
+    request(`/api/v1/occurrences/${occurrenceId}`, {
+      auth: true,
+      schema: occurrenceDetailSchema,
+    }),
+    request(`/api/v1/occurrences/${occurrenceId}/timeline`, {
+      auth: true,
+      schema: occurrenceTimelineSchema,
+    }),
+  ]);
+  return {
+    occurrence: occurrence.data.occurrence,
+    timeline: timeline.data.timeline,
+  };
+}
+
+export function resolveAssetUrl(value: string): string | null {
+  try {
+    const url = new URL(value, `${config.apiBaseUrl}/`);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 export function isOperationalRole(role: UserRole): role is OperationalRole {
