@@ -92,3 +92,4 @@ O mapa possui um limite de desempenho próprio porque carrega MapLibre e o estil
 - Validação visual final: aprovada pelo usuário em 24 de julho de 2026.
 - Commit e publicação da branch: autorizados.
 - Estratégia: push sem reescrever o histórico e PR empilhado sobre a FE‑6.
+- Publicação: commit `5d85b9a` na branch `codex/citizen-stabilization`, aberto para revisão no PR [#8](https://github.com/jhonmatos01/ta-na-rua/pull/8).

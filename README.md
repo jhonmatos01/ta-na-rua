@@ -2,7 +2,7 @@
 
 API REST da plataforma de inteligencia urbana colaborativa **Ta na Rua!**, implementada a partir do PRD Tecnico Consolidado v1.2.
 
-Estado atual: **back-end MVP concluído e preservado; FE‑0 a FE‑6 publicadas em branches empilhadas; FE‑7 concluída e aprovada para publicação; Painel da Prefeitura é a próxima frente**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
+Estado atual: **back-end MVP concluído e preservado; FE‑0 a FE‑7 publicadas em branches empilhadas; Painel da Prefeitura é a próxima frente**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
 
 ## O que existe
 

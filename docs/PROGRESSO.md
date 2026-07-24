@@ -835,7 +835,7 @@ Relatório em [FE6_VALIDACAO.md](FE6_VALIDACAO.md).
 
 ## FE‑7 — Estabilização e demonstração
 
-Estado: concluída e aprovada pelo usuário em 24 de julho de 2026; publicação autorizada na branch `codex/citizen-stabilization`.
+Estado: concluída e aprovada pelo usuário em 24 de julho de 2026; publicada para revisão no PR #8.
 
 ### Checklist da versão candidata
 
@@ -850,7 +850,7 @@ Estado: concluída e aprovada pelo usuário em 24 de julho de 2026; publicação
 - [x] Confirmar ausência de sobreposição móvel, rolagem horizontal e erros de console.
 - [x] Documentar inicialização, demonstração, limites, segurança e métricas.
 - [x] Obter validação visual final do usuário.
-- [ ] Publicar a branch e abrir o PR empilhado sobre a FE‑6.
+- [x] Publicar a branch e abrir o PR empilhado sobre a FE‑6.
 
 ### Evidências
 
@@ -860,3 +860,4 @@ Estado: concluída e aprovada pelo usuário em 24 de julho de 2026; publicação
 - 20 cenários funcionais e 14 auditorias Axe executados em desktop e mobile.
 - Lighthouse aprovado na página inicial e no mapa, com limites explícitos por rota.
 - Nenhuma alteração de banco, migration, contrato existente da API, JWT ou autorização.
+- Branch `codex/citizen-stabilization` publicada no PR [#8](https://github.com/jhonmatos01/ta-na-rua/pull/8), a partir do commit `5d85b9a`.
