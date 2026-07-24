@@ -4,7 +4,7 @@ interface BrandMarkProps {
 
 export function BrandMark({ compact = false }: BrandMarkProps) {
   return (
-    <span className="inline-flex items-center gap-2.5" aria-label="Tá na Rua!">
+    <span className="inline-flex items-center gap-2.5" role="img" aria-label="Tá na Rua!">
       <span
         className="relative grid size-10 place-items-center overflow-hidden rounded-[14px] bg-brand-700 text-white shadow-brand"
         aria-hidden="true"

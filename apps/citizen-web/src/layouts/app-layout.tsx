@@ -190,6 +190,7 @@ export function AppLayout() {
             ) : (
               <span
                 className="h-11 w-24 animate-pulse rounded-xl bg-slate-100"
+                role="status"
                 aria-label="Verificando sessão"
               />
             )}
@@ -211,8 +212,8 @@ export function AppLayout() {
             </div>
           </div>
           <div className="text-slate-500 sm:text-right">
-            <p>Versão {env.appVersion} · Fase FE‑6</p>
-            <p className="mt-1 text-xs">Avaliações de reparo e aplicativo instalável.</p>
+            <p>Versão {env.appVersion} · Fase FE‑7</p>
+            <p className="mt-1 text-xs">Estabilização, acessibilidade e demonstração.</p>
           </div>
         </div>
       </footer>
