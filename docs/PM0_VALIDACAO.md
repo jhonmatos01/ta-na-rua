@@ -2,6 +2,9 @@
 
 Data da implementação inicial: 24 de julho de 2026.
 
+Publicação: branch `codex/municipal-dashboard-foundation`, PR
+[#9](https://github.com/jhonmatos01/ta-na-rua/pull/9).
+
 ## Objetivo
 
 Criar uma aplicação separada para a operação municipal, apoiada nos contratos já concluídos do back-end e sem misturar permissões administrativas com o aplicativo cidadão.

@@ -865,7 +865,7 @@ Estado: concluída e aprovada pelo usuário em 24 de julho de 2026; publicada pa
 ## PM‑0 — Fundação do Painel da Prefeitura
 
 Estado: implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de 2026;
-pronta para publicação.
+publicada para revisão no PR #9.
 
 ### Checklist
 
@@ -881,6 +881,9 @@ pronta para publicação.
 - [x] Corrigir a incorporação cross-origin das imagens públicas e preservar as demais políticas de segurança.
 - [x] Aprovar lint, tipos, build, seed, schema e integração HTTP local.
 - [x] Obter validação visual do usuário.
-- [ ] Publicar a branch após aprovação explícita.
+- [x] Publicar a branch após aprovação explícita.
 
 Relatório em [PM0_VALIDACAO.md](PM0_VALIDACAO.md).
+
+Branch `codex/municipal-dashboard-foundation` publicada no PR
+[#9](https://github.com/jhonmatos01/ta-na-rua/pull/9).
