@@ -1,20 +1,20 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState, type FormEvent } from 'react';
 
-import {
-  getDashboard,
-  type CategoryItem,
-  type DashboardSummary,
-  type RankingItem,
-} from './api';
+import { getDashboard, type CategoryItem, type DashboardSummary, type RankingItem } from './api';
 import { useAuth } from './auth-context';
 import { OperationsPage } from './operations-page';
 
-type MunicipalView = 'occurrences' | 'overview';
+const HeatmapPage = lazy(async () => {
+  const module = await import('./heatmap-page');
+  return { default: module.HeatmapPage };
+});
+
+type MunicipalView = 'heatmap' | 'occurrences' | 'overview';
 
 function currentMunicipalView(): MunicipalView {
-  return new URLSearchParams(window.location.search).get('view') === 'occurrences'
-    ? 'occurrences'
-    : 'overview';
+  const view = new URLSearchParams(window.location.search).get('view');
+  if (view === 'occurrences' || view === 'heatmap') return view;
+  return 'overview';
 }
 
 function Brand({ compact = false }: { compact?: boolean }) {
@@ -197,9 +197,10 @@ function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    if (view !== 'overview') return;
     const initialLoad = window.setTimeout(() => void loadDashboard(), 0);
     return () => window.clearTimeout(initialLoad);
-  }, [loadDashboard]);
+  }, [loadDashboard, view]);
 
   useEffect(() => {
     const handleHistory = () => setView(currentMunicipalView());
@@ -210,9 +211,9 @@ function DashboardPage() {
   function navigate(viewToOpen: MunicipalView) {
     setView(viewToOpen);
     const nextUrl =
-      viewToOpen === 'occurrences'
-        ? `${window.location.pathname}?view=occurrences`
-        : window.location.pathname;
+      viewToOpen === 'overview'
+        ? window.location.pathname
+        : `${window.location.pathname}?view=${viewToOpen}`;
     window.history.pushState({}, '', nextUrl);
   }
 
@@ -241,9 +242,13 @@ function DashboardPage() {
           >
             <span aria-hidden="true">△</span> Ocorrências
           </button>
-          <button className="nav-item nav-item--disabled" type="button" disabled>
+          <button
+            className={`nav-item nav-item--primary ${view === 'heatmap' ? 'nav-item--active' : ''}`}
+            type="button"
+            aria-current={view === 'heatmap' ? 'page' : undefined}
+            onClick={() => navigate('heatmap')}
+          >
             <span aria-hidden="true">⌖</span> Mapa de calor
-            <small>em breve</small>
           </button>
           <span className="nav-item nav-item--disabled">
             <span aria-hidden="true">✓</span> Equipes <small>em breve</small>
@@ -266,146 +271,169 @@ function DashboardPage() {
       <main className="dashboard" id="visao-geral">
         {view === 'occurrences' ? (
           <OperationsPage onLogout={logout} />
+        ) : view === 'heatmap' ? (
+          <Suspense
+            fallback={
+              <div className="panel-loading" role="status">
+                Preparando inteligência territorial…
+              </div>
+            }
+          >
+            <HeatmapPage onLogout={logout} />
+          </Suspense>
         ) : (
           <>
-        <header className="dashboard__header">
-          <div>
-            <span className="eyebrow">Centro de operações</span>
-            <h1>Visão geral da cidade</h1>
-            <p>Indicadores atualizados diretamente pelo back-end do Tá na Rua!.</p>
-          </div>
-          <div className="header-actions">
-            <span className="live-indicator">
-              <i aria-hidden="true" /> Dados em tempo real
-            </span>
-            <button className="secondary-button" type="button" onClick={() => void loadDashboard()}>
-              Atualizar
-            </button>
-            <button className="text-button" type="button" onClick={() => void logout()}>
-              Sair
-            </button>
-          </div>
-        </header>
-
-        {error && (
-          <div className="dashboard-error" role="alert">
-            <span>{error}</span>
-            <button type="button" onClick={() => void loadDashboard()}>
-              Tentar novamente
-            </button>
-          </div>
-        )}
-
-        <section className="metric-grid" aria-label="Indicadores principais" aria-busy={loading}>
-          <MetricCard
-            label="Total de ocorrências"
-            value={summary ? formatNumber(summary.totalOccurrences) : '—'}
-            detail="Registros no município"
-            tone="blue"
-          />
-          <MetricCard
-            label="Em atendimento"
-            value={summary ? formatNumber(summary.activeOccurrences) : '—'}
-            detail="Demandas ativas"
-            tone="orange"
-          />
-          <MetricCard
-            label="Resolvidas"
-            value={summary ? formatNumber(summary.resolvedOccurrences) : '—'}
-            detail="Soluções registradas"
-            tone="green"
-          />
-          <MetricCard
-            label="Taxa de resolução"
-            value={summary ? `${summary.resolutionRate.toFixed(1)}%` : '—'}
-            detail={summary ? `${formatNumber(summary.totalConfirmations)} confirmações` : 'Participação cidadã'}
-            tone="red"
-          />
-        </section>
-
-        <section className="dashboard-grid">
-          <article className="panel priority-panel" id="prioridades">
-            <div className="panel__header">
+            <header className="dashboard__header">
               <div>
-                <span className="eyebrow">Fila inteligente</span>
-                <h2>Ocorrências prioritárias</h2>
+                <span className="eyebrow">Centro de operações</span>
+                <h1>Visão geral da cidade</h1>
+                <p>Indicadores atualizados diretamente pelo back-end do Tá na Rua!.</p>
               </div>
-              <span className="panel__count">{ranking.length} em destaque</span>
-            </div>
-            {loading ? (
-              <div className="panel-loading">Organizando prioridades…</div>
-            ) : ranking.length === 0 ? (
-              <div className="empty-state">Nenhuma ocorrência para os filtros atuais.</div>
-            ) : (
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Ocorrência</th>
-                      <th>Bairro</th>
-                      <th>Status</th>
-                      <th>Prioridade</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ranking.map((occurrence, index) => (
-                      <tr key={occurrence.occurrenceId}>
-                        <td>
-                          <span className="rank-number">{index + 1}</span>
-                          <span>
-                            <strong>{occurrence.title}</strong>
-                            <small>
-                              {occurrence.protocol} · {occurrence.categoryName ?? 'Sem categoria'}
-                            </small>
-                          </span>
-                        </td>
-                        <td>{occurrence.neighborhoodName ?? 'Não informado'}</td>
-                        <td>
-                          <span className={`status status--${occurrence.status.toLowerCase()}`}>
-                            {statusLabels[occurrence.status] ?? occurrence.status}
-                          </span>
-                        </td>
-                        <td>
-                          <strong className="priority-score">
-                            {occurrence.priorityScore.toFixed(1)}
-                          </strong>
-                          <small>{occurrence.confirmationCount} confirmações</small>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="header-actions">
+                <span className="live-indicator">
+                  <i aria-hidden="true" /> Dados em tempo real
+                </span>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => void loadDashboard()}
+                >
+                  Atualizar
+                </button>
+                <button className="text-button" type="button" onClick={() => void logout()}>
+                  Sair
+                </button>
+              </div>
+            </header>
+
+            {error && (
+              <div className="dashboard-error" role="alert">
+                <span>{error}</span>
+                <button type="button" onClick={() => void loadDashboard()}>
+                  Tentar novamente
+                </button>
               </div>
             )}
-          </article>
 
-          <article className="panel category-panel" id="categorias">
-            <div className="panel__header">
-              <div>
-                <span className="eyebrow">Distribuição</span>
-                <h2>Por categoria</h2>
-              </div>
-            </div>
-            <div className="category-list">
-              {categories.slice(0, 5).map((category, index) => (
-                <div className="category-row" key={category.key ?? category.name}>
-                  <span className={`category-dot category-dot--${(index % 5) + 1}`} />
-                  <span>
-                    <strong>{category.name}</strong>
-                    <small>{category.percentage.toFixed(1)}% do total</small>
-                  </span>
-                  <strong>{formatNumber(category.count)}</strong>
-                  <span className="category-bar">
-                    <i style={{ width: `${Math.min(category.percentage, 100)}%` }} />
-                  </span>
+            <section
+              className="metric-grid"
+              aria-label="Indicadores principais"
+              aria-busy={loading}
+            >
+              <MetricCard
+                label="Total de ocorrências"
+                value={summary ? formatNumber(summary.totalOccurrences) : '—'}
+                detail="Registros no município"
+                tone="blue"
+              />
+              <MetricCard
+                label="Em atendimento"
+                value={summary ? formatNumber(summary.activeOccurrences) : '—'}
+                detail="Demandas ativas"
+                tone="orange"
+              />
+              <MetricCard
+                label="Resolvidas"
+                value={summary ? formatNumber(summary.resolvedOccurrences) : '—'}
+                detail="Soluções registradas"
+                tone="green"
+              />
+              <MetricCard
+                label="Taxa de resolução"
+                value={summary ? `${summary.resolutionRate.toFixed(1)}%` : '—'}
+                detail={
+                  summary
+                    ? `${formatNumber(summary.totalConfirmations)} confirmações`
+                    : 'Participação cidadã'
+                }
+                tone="red"
+              />
+            </section>
+
+            <section className="dashboard-grid">
+              <article className="panel priority-panel" id="prioridades">
+                <div className="panel__header">
+                  <div>
+                    <span className="eyebrow">Fila inteligente</span>
+                    <h2>Ocorrências prioritárias</h2>
+                  </div>
+                  <span className="panel__count">{ranking.length} em destaque</span>
                 </div>
-              ))}
-              {!loading && categories.length === 0 && (
-                <div className="empty-state">Ainda não há categorias contabilizadas.</div>
-              )}
-            </div>
-          </article>
-        </section>
+                {loading ? (
+                  <div className="panel-loading">Organizando prioridades…</div>
+                ) : ranking.length === 0 ? (
+                  <div className="empty-state">Nenhuma ocorrência para os filtros atuais.</div>
+                ) : (
+                  <div className="table-scroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Ocorrência</th>
+                          <th>Bairro</th>
+                          <th>Status</th>
+                          <th>Prioridade</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ranking.map((occurrence, index) => (
+                          <tr key={occurrence.occurrenceId}>
+                            <td>
+                              <span className="rank-number">{index + 1}</span>
+                              <span>
+                                <strong>{occurrence.title}</strong>
+                                <small>
+                                  {occurrence.protocol} ·{' '}
+                                  {occurrence.categoryName ?? 'Sem categoria'}
+                                </small>
+                              </span>
+                            </td>
+                            <td>{occurrence.neighborhoodName ?? 'Não informado'}</td>
+                            <td>
+                              <span className={`status status--${occurrence.status.toLowerCase()}`}>
+                                {statusLabels[occurrence.status] ?? occurrence.status}
+                              </span>
+                            </td>
+                            <td>
+                              <strong className="priority-score">
+                                {occurrence.priorityScore.toFixed(1)}
+                              </strong>
+                              <small>{occurrence.confirmationCount} confirmações</small>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </article>
+
+              <article className="panel category-panel" id="categorias">
+                <div className="panel__header">
+                  <div>
+                    <span className="eyebrow">Distribuição</span>
+                    <h2>Por categoria</h2>
+                  </div>
+                </div>
+                <div className="category-list">
+                  {categories.slice(0, 5).map((category, index) => (
+                    <div className="category-row" key={category.key ?? category.name}>
+                      <span className={`category-dot category-dot--${(index % 5) + 1}`} />
+                      <span>
+                        <strong>{category.name}</strong>
+                        <small>{category.percentage.toFixed(1)}% do total</small>
+                      </span>
+                      <strong>{formatNumber(category.count)}</strong>
+                      <span className="category-bar">
+                        <i style={{ width: `${Math.min(category.percentage, 100)}%` }} />
+                      </span>
+                    </div>
+                  ))}
+                  {!loading && categories.length === 0 && (
+                    <div className="empty-state">Ainda não há categorias contabilizadas.</div>
+                  )}
+                </div>
+              </article>
+            </section>
           </>
         )}
       </main>
