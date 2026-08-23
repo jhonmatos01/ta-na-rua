@@ -10,7 +10,23 @@ import {
 import type { AiServiceConfig } from './config.js';
 import { analyzeOccurrence } from './engine.js';
 
-type RuntimeConfig = Pick<AiServiceConfig, 'mode' | 'secret'>;
+import {
+  AiProviderError,
+  analyzeWithOpenAiCompatible,
+  type FetchImplementation,
+} from './provider.js';
+
+type RuntimeConfig = Pick<AiServiceConfig, 'mode' | 'secret'> &
+  Partial<
+    Pick<
+      AiServiceConfig,
+      | 'providerBaseUrl'
+      | 'providerApiKey'
+      | 'providerModel'
+      | 'providerTimeoutMs'
+      | 'forceHumanReview'
+    >
+  > & { fetchImplementation?: FetchImplementation };
 
 function digest(value: string): Buffer {
   return createHash('sha256').update(value, 'utf8').digest();
@@ -43,8 +59,12 @@ export function createApp(config: RuntimeConfig): express.Express {
     response.status(200).json({
       status: 'ok',
       mode: config.mode,
-      productionReady: false,
-      humanReviewRequired: true,
+      providerConfigured:
+        config.mode === 'OPENAI_COMPATIBLE' && config.providerBaseUrl !== undefined,
+      productionReady:
+        config.mode === 'OPENAI_COMPATIBLE' &&
+        config.providerBaseUrl?.startsWith('https://') === true,
+      humanReviewRequired: config.forceHumanReview ?? true,
     });
   });
 
@@ -68,7 +88,7 @@ export function createApp(config: RuntimeConfig): express.Express {
       next();
     },
     jsonParser,
-    (request, response) => {
+    async (request, response) => {
       response.setHeader('Cache-Control', 'no-store');
 
       const parsedRequest = aiServiceRequestSchema.safeParse(request.body);
@@ -95,11 +115,40 @@ export function createApp(config: RuntimeConfig): express.Express {
         return;
       }
 
-      const analysis = aiServiceResponseSchema.parse(
-        analyzeOccurrence(parsedRequest.data),
-      );
+      try {
+        const analysis =
+          config.mode === 'DETERMINISTIC'
+            ? analyzeOccurrence(parsedRequest.data)
+            : await analyzeWithOpenAiCompatible(parsedRequest.data, {
+                baseUrl: config.providerBaseUrl as string,
+                model: config.providerModel ?? 'Meu primeiro combo',
+                timeoutMs: config.providerTimeoutMs ?? 60_000,
+                forceHumanReview: config.forceHumanReview ?? true,
+                ...(config.providerApiKey === undefined
+                  ? {}
+                  : { apiKey: config.providerApiKey }),
+                ...(config.fetchImplementation === undefined
+                  ? {}
+                  : { fetchImplementation: config.fetchImplementation }),
+              });
 
-      response.status(200).json(analysis);
+        response.status(200).json(aiServiceResponseSchema.parse(analysis));
+      } catch (error) {
+        if (error instanceof AiProviderError) {
+          response.status(error.statusCode).json({
+            error: error.kind === 'INVALID_RESPONSE'
+              ? 'invalid_provider_response'
+              : 'provider_unavailable',
+            message: 'O serviço de IA não pôde concluir a análise.',
+          });
+          return;
+        }
+
+        response.status(502).json({
+          error: 'invalid_provider_response',
+          message: 'O serviço de IA não pôde concluir a análise.',
+        });
+      }
     },
   );
 
