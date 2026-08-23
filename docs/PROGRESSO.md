@@ -991,8 +991,8 @@ Relatório em [AI0_VALIDACAO.md](AI0_VALIDACAO.md).
 
 ## AI-1 — Integração com OmniRoute local
 
-Estado: implementação técnica concluída e validação integrada aprovada em 22 de agosto de 2026;
-branch local `codex/ai-local-provider`, aguardando publicação após aprovação.
+Estado: implementação técnica concluída, validada e aprovada pelo usuário em 23 de agosto de
+2026; publicada para revisão no PR #14.
 
 ### Checklist
 
@@ -1006,7 +1006,9 @@ branch local `codex/ai-local-provider`, aguardando publicação após aprovaçã
 - [x] Aprovar lint, typecheck, 17 testes e build da AI-1.
 - [x] Executar teste integrado sintético contra o OmniRoute local.
 - [x] Documentar configuração e limitações.
-- [ ] Obter aprovação do usuário.
-- [ ] Publicar a branch após aprovação explícita.
+- [x] Obter aprovação do usuário.
+- [x] Publicar a branch após aprovação explícita.
 
 Relatório em [AI1_VALIDACAO.md](AI1_VALIDACAO.md).
+
+Branch `codex/ai-local-provider` publicada no PR
