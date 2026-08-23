@@ -964,3 +964,27 @@ Relatório em [PM3_VALIDACAO.md](PM3_VALIDACAO.md).
 
 Branch `codex/municipal-heatmap-analytics` publicada no PR
 [#12](https://github.com/jhonmatos01/ta-na-rua/pull/12), a partir do commit `c4c2409`.
+
+## AI-0 — Fundação segura do serviço de análise
+
+Estado: implementação técnica concluída e validada em 24 de julho de 2026;
+aguardando aprovação para publicação.
+
+### Checklist
+
+- [x] Criar serviço isolado em `services/ai-service`.
+- [x] Implementar `GET /health` e `POST /analyze`.
+- [x] Preservar integralmente o contrato 1.0 já consumido pelo back-end.
+- [x] Exigir segredo exclusivo entre serviços.
+- [x] Exigir idempotência vinculada ao identificador do reporte.
+- [x] Validar entrada e resposta com schemas estritos.
+- [x] Limitar corpo e impedir exposição de dados nos erros.
+- [x] Restringir categorias e duplicidades ao contexto fornecido.
+- [x] Manter revisão humana obrigatória e confiança limitada.
+- [x] Impedir o modo determinístico de iniciar em produção.
+- [x] Aprovar lint, tipos, 12 testes e build do serviço.
+- [x] Aprovar lint, 210 testes e build do projeto principal.
+- [ ] Obter aprovação do usuário.
+- [ ] Publicar a branch após aprovação explícita.
+
+Relatório em [AI0_VALIDACAO.md](AI0_VALIDACAO.md).
