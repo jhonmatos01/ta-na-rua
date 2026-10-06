@@ -701,3 +701,9 @@ A preparação não significa publicação externa. A autenticação GitHub disp
 - [ ] Validar URL pública e o fluxo completo com S3 real.
 
 As pendências anteriores de autenticação GitHub foram resolvidas pela instalação do conector no repositório. A transferência ocorreu pela API do GitHub; o git push convencional retornou erro de transporte. O login do usuário nos serviços de hospedagem não fornece credenciais nem ferramentas a esta sessão.
+
+### Correção da inicialização na Render
+
+O primeiro deploy do Blueprint terminou com código 127: a sequência entre aspas do Docker Command foi interpretada como um único comando. O Blueprint agora usa `sh /app/docker/start.sh`, com migrations, bootstrap opcional e execução da API no arquivo copiado para a imagem. Uma migration com falha interrompe a inicialização.
+
+Validação: sintaxe shell, quatro cenários de sequência/erro e imagem Docker reconstruída. O comando exato do Blueprint passou em PostgreSQL/PostGIS temporário, com migrations, bootstrap, health do banco/API, catálogo, login ADMIN, cookies Secure/HttpOnly, Sharp/Argon2 e usuário sem root. Recursos temporários removidos. Nova sincronização e validação nos provedores ainda pendentes.

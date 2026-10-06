@@ -7,7 +7,7 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    dockerCommand: sh -c 'node dist/database/migrate.js && if [ "$PILOT_BOOTSTRAP" = "true" ]; then node dist/database/bootstrap-pilot.js; fi && exec node dist/server.js'
+    dockerCommand: sh /app/docker/start.sh
     healthCheckPath: /health/database
     autoDeployTrigger: 'off'
     envVars:

@@ -42,7 +42,7 @@ Em [Render Blueprints](https://dashboard.render.com/blueprints), escolha New Blu
 
 O Blueprint mantém `NODE_ENV=production`, mas usa `DEPLOYMENT_PROFILE=pilot`: IA, Telegram, WhatsApp e n8n ficam sem configuração e continuam recusando chamadas de integração. O atendimento usa revisão manual. Não configure URLs/segredos falsos para satisfazer validação. HTTPS, segredo JWT próprio, rejeição de placeholders e storage S3 continuam obrigatórios. O perfil padrão `full` preserva as exigências anteriores.
 
-A Render gera `JWT_ACCESS_SECRET`. O comando Docker aplica migrations antes de iniciar a API; a execução do piloto é de uma instância. Sem pre-deploy pago, essa é a estratégia inicial. A health check consulta `/health/database`.
+A Render gera `JWT_ACCESS_SECRET`. O comando Docker `sh /app/docker/start.sh` aplica migrations antes de iniciar a API; a execução do piloto é de uma instância. Sem pre-deploy pago, essa é a estratégia inicial. A health check consulta `/health/database`. A sequência fica no arquivo, evitando a interpretação de aspas do campo Docker Command da Render.
 
 `TRUST_PROXY_HOPS=1` confia somente no proxy imediato da Render. Com a Vercel na frente, o limite de requisições pode agrupar tráfego por IP do proxy. Valide a cadeia real antes de mudar esse valor; não aumente cegamente, pois a URL da API também é acessível diretamente.
 
