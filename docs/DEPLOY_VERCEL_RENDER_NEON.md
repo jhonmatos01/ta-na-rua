@@ -1,6 +1,6 @@
 # Homologação: Vercel, Render e Neon
 
-Esta configuração prepara uma versão de testes com HTTPS, API e banco reais. Ainda não há um endereço publicado. A publicação exige as contas do proprietário e envio dos commits locais ao GitHub. Não compartilhe senhas, connection strings ou chaves em chats/issues; informe-as nos campos protegidos dos provedores.
+Esta configuração prepara uma versão de testes com HTTPS, API e banco reais. Ainda não há um endereço do site publicado. O código e seu histórico já estão no GitHub na branch `desenvolvimento`; a `main` permaneceu intacta. A publicação exige configuração nas contas dos provedores. Não compartilhe senhas, connection strings ou chaves em chats/issues; informe-as nos campos protegidos dos provedores.
 
 ## Arquitetura
 
@@ -15,7 +15,7 @@ Os planos gratuitos e suas limitações precisam ser conferidos nos painéis atu
 
 ## 1. Repositório
 
-Envie ao GitHub o código atualizado, incluindo `render.yaml`, `frontend/vercel.json`, migrations e bootstrap. Os commits feitos nesta sessão estão somente no workspace até esse envio. Não envie `.env`, dumps do banco local nem arquivos de upload. Vercel/Render devem importar a revisão atualizada, não apenas o commit anterior do repositório remoto.
+Use [a branch desenvolvimento](https://github.com/jhonmatos01/ta-na-rua/tree/desenvolvimento), que contém o frontend, `render.yaml`, migrations e bootstrap. O Blueprint Render aponta explicitamente para essa branch. Não envie `.env`, dumps do banco local nem arquivos de upload. Vercel/Render devem importar a revisão atualizada, não apenas o commit anterior do repositório remoto.
 
 ## 2. Neon
 
@@ -38,7 +38,7 @@ Apesar do nome histórico `PUBLIC_BASE_URL`, o bucket permanece privado. A aplic
 
 ## 4. Render
 
-Importe o repositório pelo fluxo de Blueprint, usando `render.yaml`. Antes do deploy, preencha os campos `sync: false`. `CORS_ORIGIN` deve ser a origem HTTPS exata do projeto Vercel. Se o endereço definitivo ainda não existir, reserve/crie o projeto Vercel e use seu domínio; ajuste depois se necessário.
+Em [Render Blueprints](https://dashboard.render.com/blueprints), escolha New Blueprint, conecte o repositório e selecione **branch `desenvolvimento`**, usando `render.yaml`. Antes do deploy, preencha os campos `sync: false`. `CORS_ORIGIN` deve ser a origem HTTPS exata do projeto Vercel. Se o endereço definitivo ainda não existir, reserve/crie o projeto Vercel e use seu domínio; ajuste depois se necessário.
 
 O Blueprint mantém `NODE_ENV=production`, mas usa `DEPLOYMENT_PROFILE=pilot`: IA, Telegram, WhatsApp e n8n ficam sem configuração e continuam recusando chamadas de integração. O atendimento usa revisão manual. Não configure URLs/segredos falsos para satisfazer validação. HTTPS, segredo JWT próprio, rejeição de placeholders e storage S3 continuam obrigatórios. O perfil padrão `full` preserva as exigências anteriores.
 
@@ -72,7 +72,7 @@ O comando `npm run db:bootstrap:pilot` também executa a inicialização após b
 
 ## 5. Vercel
 
-Importe o mesmo repositório e selecione **Root Directory `frontend`**. Framework Vite, Build Command `npm run build`, Output Directory `dist`. Não é necessário definir `VITE_*` com segredos ou URLs da API.
+Em [Vercel New Project](https://vercel.com/new), importe o mesmo repositório. Configure a branch de publicação como **`desenvolvimento`** e selecione **Root Directory `frontend`**. Se a importação inicial usar `main`, ajuste Settings → Git → Production Branch para `desenvolvimento`, confirme Root Directory e faça o deploy dessa branch; a `main` antiga não contém o frontend. Framework Vite, Build Command `npm run build`, Output Directory `dist`. Não é necessário definir `VITE_*` com segredos ou URLs da API.
 
 Antes de publicar, substitua **as duas ocorrências** de `https://ta-na-rua-api.onrender.com` em `frontend/vercel.json` pelo endereço real atribuído ao serviço Render. O endereço no arquivo é um modelo; sua disponibilidade não foi confirmada nem representa um serviço já criado.
 
@@ -92,6 +92,12 @@ Essas verificações externas dependem dos serviços reais e não são substitu�
 
 ## Estado desta preparação
 
-Configurações de Vercel/Render, perfil de piloto e bootstrap incluídos no repositório. Nenhuma conta de provedor conectada, segredo real configurado, push GitHub ou publicação externa efetuados nesta sessão. Próxima etapa: conectar as contas, preencher os campos protegidos e executar a publicação, seguida das verificações acima.
+Configurações de Vercel/Render, perfil de piloto e bootstrap incluídos no repositório. GitHub conectado e commits publicados na branch `desenvolvimento`, preservando a `main`. Não há ferramentas nem credenciais das contas Vercel, Render, Neon ou Cloudflare disponíveis nesta sessão; entrar nesses sites pelo navegador não fornece acesso automático ao ambiente. Nenhum segredo real de hospedagem foi configurado nem endereço externo publicado. Próxima etapa: conectar as contas, preencher os campos protegidos e executar a publicação, seguida das verificações acima.
 
-Validação desta preparação: lint, 223 testes do backend, build TypeScript e Vite, formatação e migration/bootstrap em banco PostgreSQL/PostGIS temporário aprovados. O bootstrap foi executado duas vezes e permaneceu com um administrador, um município, 11 categorias e uma auditoria de inicialização. A imagem Docker e os serviços externos ainda precisam ser validados nos provedores. A verificação `gh auth status` rejeitou a autenticação disponível; nenhum token foi exposto ou substituído.
+Validação desta preparação: lint, 223 testes do backend, build TypeScript e Vite, formatação e migration/bootstrap em banco PostgreSQL/PostGIS temporário aprovados. O bootstrap foi executado duas vezes e permaneceu com um administrador, um município, 11 categorias e uma auditoria de inicialização. Os serviços externos ainda precisam ser validados nos provedores. O bloqueio anterior de autorização GitHub foi resolvido instalando o conector no repositório; o envio foi feito pela API, com os SHAs dos commits preservados. Nenhum token foi exposto ou substituído.
+
+## Atualização de validação e branch
+
+O Blueprint agora fixa `repo` e `branch: desenvolvimento`. A imagem Docker runtime foi construída e iniciada em perfil production/pilot com PostgreSQL/PostGIS temporário: migrations, bootstrap, health da API/banco, catálogo, login ADMIN, cookies Secure/HttpOnly, módulos nativos Sharp/Argon2 e execução como usuário sem root foram verificados. Banco, container e arquivo temporário de ambiente foram removidos após o teste. Nenhum dado do banco normal foi alterado.
+
+O Dockerfile permite montagem opcional da CA do proxy da sessão por segredo BuildKit nos passos npm, sem incluir esse certificado na imagem nem desativar TLS. Na Render, a montagem não precisa ser fornecida. A verificação não exercitou bucket S3 real, domínio Vercel, credenciais dos provedores ou restauração de backups.

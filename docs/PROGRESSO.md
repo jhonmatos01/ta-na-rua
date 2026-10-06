@@ -688,3 +688,16 @@ Fase 11 permanece em andamento.
 - [ ] Criar/conectar os serviços nas contas do proprietário e validar o endereço HTTPS publicado.
 
 A preparação não significa publicação externa. A autenticação GitHub disponível foi rejeitada ao verificar `gh auth status`; não foram enviados commits nem configuradas contas de hospedagem. Consulte [DEPLOY_VERCEL_RENDER_NEON.md](DEPLOY_VERCEL_RENDER_NEON.md).
+
+### GitHub e validação da imagem de homologação
+
+- [x] Publicar histórico completo na branch desenvolvimento com SHAs originais preservados.
+- [x] Confirmar main remota e local no commit original, sem integrar as mudanças.
+- [x] Fixar branch desenvolvimento no Blueprint Render.
+- [x] Construir imagem Docker runtime com TLS verificado.
+- [x] Validar migrations/bootstrap/login/catálogo em container e banco temporários.
+- [x] Verificar Sharp, Argon2, cookie Secure/HttpOnly e execução sem root.
+- [ ] Configurar Neon, bucket privado, Render e Vercel nos painéis do proprietário.
+- [ ] Validar URL pública e o fluxo completo com S3 real.
+
+As pendências anteriores de autenticação GitHub foram resolvidas pela instalação do conector no repositório. A transferência ocorreu pela API do GitHub; o git push convencional retornou erro de transporte. O login do usuário nos serviços de hospedagem não fornece credenciais nem ferramentas a esta sessão.

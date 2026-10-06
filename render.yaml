@@ -1,6 +1,8 @@
 services:
   - type: web
     name: ta-na-rua-api
+    repo: https://github.com/jhonmatos01/ta-na-rua
+    branch: desenvolvimento
     runtime: docker
     plan: free
     dockerfilePath: ./Dockerfile
