@@ -2,7 +2,9 @@
 
 API REST da plataforma de inteligencia urbana colaborativa **Ta na Rua!**, implementada a partir do PRD Tecnico Consolidado v1.2.
 
-Estado atual: **Fase 10 - implementacao e validacao tecnica concluidas; aguardando aprovacao final**. As Fases 0 a 9 foram concluidas e aprovadas. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
+Estado atual: **Fase 10 - implementacao e validacao tecnica concluidas; aguardando aprovacao final**. As Fases 0 a 9 foram concluidas e aprovadas. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md). O plano de continuidade, baseado no repositorio e nos documentos de produto fornecidos, esta em [docs/PLANO_CONTINUIDADE.md](docs/PLANO_CONTINUIDADE.md).
+
+A continuidade do produto está na **Fase 11, em andamento**. O primeiro lote acrescenta controle de acesso à mídia, moderação de fotos, catálogos dinâmicos e busca compartilhada no frontend. Evidências e limites: [docs/FASE11_VALIDACAO.md](docs/FASE11_VALIDACAO.md).
 
 ## O que existe
 
@@ -155,7 +157,7 @@ npm run dev
 - **Adminer** permite inspecionar visualmente o PostgreSQL/PostGIS com os valores de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` do `.env` local.
 - A pasta `api-client` pode ser aberta no aplicativo **Bruno** para executar os cenarios agrupados por modulo.
 
-O escopo deste repositorio e o backend/API. Uma interface final de cidadao, operador e administrador nao faz parte do MVP implementado neste projeto.
+O repositorio agora inclui uma primeira versao do frontend em `frontend/`, integrada a API. Execute `npm ci --prefix frontend` e `npm run dev --prefix frontend` em outro terminal, com a API iniciada, e acesse `http://localhost:5173`. Escopo, origem dos requisitos e limitacoes estao em [docs/FRONTEND.md](docs/FRONTEND.md).
 
 ## Variaveis de ambiente da fase
 

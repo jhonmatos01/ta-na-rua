@@ -5,7 +5,7 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['coverage/**', 'dist/**', 'node_modules/**', 'tmp/**'],
+    ignores: ['coverage/**', '**/dist/**', '**/node_modules/**', 'tmp/**'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -37,6 +37,10 @@ export default tseslint.config(
     languageOptions: {
       globals: globals.node,
     },
+  },
+  {
+    files: ['frontend/src/**/*.js'],
+    languageOptions: { globals: globals.browser },
   },
   eslintConfigPrettier,
 );

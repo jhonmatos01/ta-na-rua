@@ -527,11 +527,11 @@ describe('servico de ocorrencias', () => {
       context,
     )) as Record<string, unknown>;
     expect(result).toMatchObject({
-      url: '/uploads/image.png',
       mimeType: 'image/png',
       imageType: 'UPDATE',
       moderationStatus: 'PENDING',
     });
+    expect(result.url).toMatch(/^\/api\/v1\/media\/[a-f0-9-]{36}$/u);
   });
 
   it('remove imagem quando a ocorrencia desaparece durante a inclusao', async () => {

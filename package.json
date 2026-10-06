@@ -31,7 +31,8 @@
     "docker:down": "docker compose down",
     "docker:build": "docker build --target runtime -t ta-na-rua-api:local .",
     "docker:config:production": "docker compose --env-file .env.production.example -f docker-compose.production.yml config --quiet",
-    "validate": "npm run lint && npm run test && npm run build"
+    "validate": "npm run lint && npm run test && npm run build",
+    "validate:phase11": "tsx src/database/validate-phase11.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1090.0",

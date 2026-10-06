@@ -63,6 +63,7 @@ const limitSchema = z.coerce
   .default(env.DEFAULT_PAGE_SIZE);
 
 export const occurrenceListQuerySchema = z.strictObject({
+  q: optionalText(150),
   municipalityId: optionalUuid,
   neighborhood: optionalText(150),
   category: optionalText(140),
@@ -88,6 +89,8 @@ export const nearbyQuerySchema = z.strictObject({
 });
 
 export const mapQuerySchema = z.strictObject({
+  q: optionalText(150),
+  neighborhood: optionalText(150),
   municipalityId: optionalUuid,
   category: optionalText(140),
   status: z.enum(occurrenceStatusValues).optional(),

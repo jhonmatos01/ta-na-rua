@@ -56,7 +56,7 @@ function baseOccurrence(record: OccurrenceRecord) {
     anonymousPublication: record.anonymousPublication,
     images: record.images.map((image) => ({
       id: image.id,
-      url: image.fileUrl,
+      url: `/api/v1/media/${image.id}`,
       mimeType: image.mimeType,
       imageType: image.imageType,
       moderationStatus: image.moderationStatus,
@@ -71,7 +71,10 @@ function baseOccurrence(record: OccurrenceRecord) {
 
 function serializePublic(record: OccurrenceRecord) {
   return {
-    ...baseOccurrence(record),
+    ...baseOccurrence({
+      ...record,
+      images: record.images.filter((image) => image.moderationStatus === 'APPROVED'),
+    }),
     address: sanitizeAddress(record.address),
     location: {
       latitude: roundPublicCoordinate(record.latitude),
@@ -449,7 +452,7 @@ export class DefaultOccurrencesService implements OccurrencesService {
       }
       return {
         id: created.id,
-        url: created.fileUrl,
+        url: `/api/v1/media/${created.id}`,
         mimeType: created.mimeType,
         imageType: created.imageType,
         moderationStatus: created.moderationStatus,

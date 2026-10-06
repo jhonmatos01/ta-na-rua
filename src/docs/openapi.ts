@@ -1,3 +1,4 @@
+import { phase11Paths } from './phase11-openapi.js';
 const successMetaSchema = {
   type: 'object',
   required: ['requestId'],
@@ -2781,4 +2782,30 @@ function addGlobalApiRateLimitResponses<T extends typeof openApiBaseDocument>(do
   return document;
 }
 
-export const openApiDocument = addGlobalApiRateLimitResponses(openApiBaseDocument);
+const continuationDocument = {
+  ...openApiBaseDocument,
+  paths: { ...openApiBaseDocument.paths, ...phase11Paths },
+};
+for (const path of ['/api/v1/occurrences', '/api/v1/occurrences/mine', '/api/v1/occurrences/map']) {
+  const operations = continuationDocument.paths as unknown as Record<
+    string,
+    { get?: { parameters?: unknown[] } }
+  >;
+  const get = operations[path]?.get;
+  if (get !== undefined) {
+    get.parameters ??= [];
+    get.parameters.push({
+      name: 'q',
+      in: 'query',
+      schema: { type: 'string', maxLength: 150 },
+      description: 'Busca literal por titulo ou descricao, antes da paginacao.',
+    });
+    if (path.endsWith('/map'))
+      get.parameters.push({
+        name: 'neighborhood',
+        in: 'query',
+        schema: { type: 'string', maxLength: 150 },
+      });
+  }
+}
+export const openApiDocument = addGlobalApiRateLimitResponses(continuationDocument);

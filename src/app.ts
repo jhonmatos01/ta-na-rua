@@ -2,8 +2,11 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
-import path from 'node:path';
 import swaggerUi from 'swagger-ui-express';
+
+import { createMediaRouter, type MediaRouterOptions } from './modules/media/media.routes.js';
+
+import { createCatalogRouter, type CatalogRepository } from './modules/catalog/catalog.routes.js';
 
 import { env } from './config/env.js';
 import { openApiDocument } from './docs/openapi.js';
@@ -56,6 +59,9 @@ import {
 } from './shared/middleware/api-rate-limit.js';
 
 export interface AppOptions {
+  catalogRepository?: CatalogRepository;
+  mediaRepository?: MediaRouterOptions['repository'];
+  mediaReader?: MediaRouterOptions['reader'];
   apiRateLimiter?: ApiRateLimiter;
   databaseHealthCheck?: DatabaseHealthCheck;
   identityRepository?: IdentityRepository;
@@ -105,7 +111,7 @@ export function createApp(options: AppOptions = {}): Express {
       credentials: true,
     }),
   );
-  app.use('/api', createApiRateLimitMiddleware(options.apiRateLimiter));
+  app.use(['/api', '/uploads'], createApiRateLimitMiddleware(options.apiRateLimiter));
   app.use(
     express.json({
       limit: env.JSON_BODY_LIMIT,
@@ -117,12 +123,16 @@ export function createApp(options: AppOptions = {}): Express {
   );
   app.use(cookieParser());
 
-  if (env.STORAGE_PROVIDER === 'local') {
-    app.use(
-      '/uploads',
-      express.static(path.resolve(env.STORAGE_LOCAL_DIRECTORY), { index: false }),
-    );
-  }
+  app.use('/api/v1/catalog', createCatalogRouter(options.catalogRepository));
+  app.use(
+    createMediaRouter({
+      ...(options.identityRepository === undefined
+        ? {}
+        : { identityRepository: options.identityRepository }),
+      ...(options.mediaRepository === undefined ? {} : { repository: options.mediaRepository }),
+      ...(options.mediaReader === undefined ? {} : { reader: options.mediaReader }),
+    }),
+  );
 
   app.get('/docs/openapi.json', (_request, response) => {
     response.status(200).json(openApiDocument);

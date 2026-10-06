@@ -186,6 +186,12 @@ function addCommonFilters(
   conditions: string[],
   values: unknown[],
 ): void {
+  if (query.q !== undefined) {
+    values.push('%' + query.q.replace(/[\\%_]/gu, (value) => '\\' + value) + '%');
+    conditions.push(
+      `(o.title ILIKE $${values.length} OR COALESCE(o.description, '') ILIKE $${values.length})`,
+    );
+  }
   if (query.municipalityId !== undefined) {
     values.push(query.municipalityId);
     conditions.push(`o.municipality_id = $${values.length}`);

@@ -75,3 +75,7 @@ Confirme tambem logs sem credenciais, health do container, acesso ao S3, callbac
 - habilite limite compartilhado/WAF quando houver multiplas replicas;
 - centralize logs por stdout e alerte health, 5xx, 429 e outbox `FAILED`;
 - configure backup criptografado, retencao e restauracao testada.
+
+## Mídia após o primeiro lote da Fase 11
+
+O bucket de imagens e sua origem/CDN devem impedir acesso público direto. A interface consulta `/api/v1/media/:imageId`, que verifica permissões antes de ler o objeto. Não publique o diretório de uploads por Nginx nem use uma CDN para armazenar respostas privadas da rota. Fotos só ficam públicas quando aprovadas e vinculadas a uma ocorrência visível. URLs antigas de storage exigem revogação/invalidação caso já tenham sido públicas. O adaptador de leitura S3 ainda precisa de validação no provedor de destino; a aprovação manual atual não faz desfoque nem sanitização de imagens.

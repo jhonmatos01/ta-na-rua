@@ -13,6 +13,7 @@ export default defineConfig({
         'src/server.ts',
         'src/database/migrate.ts',
         'src/database/validate-clean-database.ts',
+        'src/database/validate-phase11.ts',
         'src/database/process-outbox.ts',
         'src/database/recalculate-priorities.ts',
         'src/database/seed.ts',

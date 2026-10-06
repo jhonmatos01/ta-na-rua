@@ -613,3 +613,25 @@ Estado: implementacao e validacao tecnica concluidas em 20 de julho de 2026; agu
 - Itens bloqueados: 0
 - Itens nao iniciados: 0
 - Progresso estimado: 98%
+
+## Fase 11 — Continuidade do produto
+
+Estado: em andamento. Primeiro lote implementado em 6 de outubro de 2026, conforme [plano de continuidade](PLANO_CONTINUIDADE.md). A aprovação final da Fase 10 permanece como registrada anteriormente.
+
+### Primeiro lote — mídia, revisão e catálogos
+
+- [x] Consolidar frontend, referências de produto e primeiro lote em Git local, sem publicação no GitHub.
+- [x] Substituir uploads estáticos por leitura com visibilidade e controle de acesso.
+- [x] Aplicar o mesmo controle às URLs legadas e impedir leitura de arquivos órfãos.
+- [x] Implementar decisões de imagens com motivo, auditoria transacional e conflito de revisão.
+- [x] Integrar fila de revisão e visualização privada no frontend.
+- [x] Integrar catálogos ativos do banco em cadastro, registro e filtros.
+- [x] Aplicar busca no servidor e filtros compartilhados em mapa/lista.
+- [x] Mostrar apenas transições operacionais compatíveis com perfil/status e seus campos específicos.
+- [x] Acrescentar testes HTTP e Chromium reproduzíveis e validação em PostgreSQL isolado.
+- [x] Documentar evidências e limites em [FASE11_VALIDACAO.md](FASE11_VALIDACAO.md).
+- [ ] Separar original privado de cópia sanitizada e validar infraestrutura S3/CDN real.
+- [ ] Completar telas de perfil, administração, departamentos e edição de avaliação.
+- [ ] Modularizar a interface e finalizar o restante dos critérios de saída da Fase 11.
+
+As etapas posteriores de comunidade, IA real, rankings e piloto permanecem no plano, sem serem consideradas implementadas por este primeiro lote.
