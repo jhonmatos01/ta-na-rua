@@ -12,6 +12,7 @@ export default defineConfig({
       exclude: [
         'src/server.ts',
         'src/database/migrate.ts',
+        'src/database/bootstrap-pilot.ts',
         'src/database/validate-clean-database.ts',
         'src/database/validate-phase11.ts',
         'src/database/process-outbox.ts',

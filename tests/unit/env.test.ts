@@ -3,6 +3,40 @@ import { describe, expect, it } from 'vitest';
 import { parseEnvironment } from '../../src/config/env.js';
 
 describe('parseEnvironment', () => {
+  it('permite piloto seguro sem integracoes e mantem protecoes de producao', () => {
+    const pilot = {
+      DATABASE_URL: 'postgresql://user:password@localhost:5432/tanarua',
+      NODE_ENV: 'production',
+      DEPLOYMENT_PROFILE: 'pilot',
+      JWT_ACCESS_SECRET: 'a-secure-test-secret-of-at-least-32-characters',
+      CORS_ORIGIN: 'https://app.example.test',
+      STORAGE_PROVIDER: 's3',
+      STORAGE_BUCKET: 'private-bucket',
+      STORAGE_PUBLIC_BASE_URL: 'https://storage.example.test',
+      STORAGE_ACCESS_KEY: 'test-access',
+      STORAGE_SECRET_KEY: 'test-storage-secret',
+    };
+    expect(parseEnvironment(pilot).AI_SERVICE_URL).toBeUndefined();
+    expect(() => parseEnvironment({ ...pilot, STORAGE_PROVIDER: 'local' })).toThrow(
+      /STORAGE_PROVIDER deve ser s3/u,
+    );
+    expect(() => parseEnvironment({ ...pilot, CORS_ORIGIN: 'http://app.example.test' })).toThrow(
+      /HTTPS/u,
+    );
+    expect(() =>
+      parseEnvironment({
+        ...pilot,
+        JWT_ACCESS_SECRET: 'CHANGE_ME_secret_of_at_least_32_characters',
+      }),
+    ).toThrow(/placeholders/u);
+    expect(() =>
+      parseEnvironment({ ...pilot, N8N_WEBHOOK_URL: 'https://n8n.example.test' }),
+    ).toThrow(/pilot exige integracoes externas desativadas/u);
+    expect(() => parseEnvironment({ ...pilot, DEPLOYMENT_PROFILE: 'full' })).toThrow(
+      /AI_SERVICE_URL e AI_SERVICE_SECRET sao obrigatorias/u,
+    );
+  });
+
   it('aplica os valores padrao seguros', () => {
     const parsed = parseEnvironment({
       DATABASE_URL: 'postgresql://user:password@localhost:5432/tanarua',

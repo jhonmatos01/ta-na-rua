@@ -675,3 +675,16 @@ As telas de perfil, departamentos, administração de usuários e edição de av
 - [ ] Validar bucket/CDN privados e política de retenção na infraestrutura real.
 
 Fase 11 permanece em andamento.
+
+### Preparação de homologação — Vercel, Render e Neon
+
+- [x] Configuração Vercel para frontend com rewrites da API na mesma origem.
+- [x] Blueprint Render para API Docker e migrations na inicialização.
+- [x] Perfil pilot com revisão manual e proteções de produção preservadas.
+- [x] Bootstrap de banco novo com administrador próprio, sem contas de demonstração.
+- [x] Roteiro de Neon/PostGIS, bucket S3 privado e configuração de segredos nos provedores.
+- [x] Verificação de migrations/bootstrap em banco isolado, incluindo repetição sem duplicação.
+- [ ] Enviar os commits locais ao GitHub após restabelecer autenticação.
+- [ ] Criar/conectar os serviços nas contas do proprietário e validar o endereço HTTPS publicado.
+
+A preparação não significa publicação externa. A autenticação GitHub disponível foi rejeitada ao verificar `gh auth status`; não foram enviados commits nem configuradas contas de hospedagem. Consulte [DEPLOY_VERCEL_RENDER_NEON.md](DEPLOY_VERCEL_RENDER_NEON.md).

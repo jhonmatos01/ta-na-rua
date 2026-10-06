@@ -78,4 +78,8 @@ Confirme tambem logs sem credenciais, health do container, acesso ao S3, callbac
 
 ## Mídia após o primeiro lote da Fase 11
 
-O bucket de imagens e sua origem/CDN devem impedir acesso público direto. A interface consulta `/api/v1/media/:imageId`, que verifica permissões antes de ler o objeto. Não publique o diretório de uploads por Nginx nem use uma CDN para armazenar respostas privadas da rota. Fotos só ficam públicas quando aprovadas e vinculadas a uma ocorrência visível. URLs antigas de storage exigem revogação/invalidação caso já tenham sido públicas. O adaptador de leitura S3 ainda precisa de validação no provedor de destino; a aprovação manual atual não faz desfoque nem sanitização de imagens.
+O bucket de imagens e sua origem/CDN devem impedir acesso público direto. A interface consulta `/api/v1/media/:imageId`, que verifica permissões antes de ler o objeto. Não publique o diretório de uploads por Nginx nem use uma CDN para armazenar respostas privadas da rota. Fotos só ficam públicas quando aprovadas e vinculadas a uma ocorrência visível. URLs antigas de storage exigem revogação/invalidação caso já tenham sido públicas. O adaptador de leitura S3 ainda precisa de validação no provedor de destino; a aprovação agora gera uma cópia WebP sem metadados, com opção de desfoque integral; não há detecção automática de rostos/placas.
+
+## Homologação Vercel / Render / Neon
+
+Consulte [o roteiro de homologação](DEPLOY_VERCEL_RENDER_NEON.md), que inclui bucket privado, rewrites na mesma origem, perfil de revisão manual e inicialização sem contas de demonstração. Não equivale a um deploy já executado.

@@ -21,6 +21,7 @@
     "test:coverage": "vitest run --coverage",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/database/migrate.ts",
+    "db:bootstrap:pilot": "node dist/database/bootstrap-pilot.js",
     "db:seed": "tsx src/database/seed.ts",
     "db:validate": "tsx src/database/validate-schema.ts",
     "db:validate:clean": "tsx src/database/validate-clean-database.ts",

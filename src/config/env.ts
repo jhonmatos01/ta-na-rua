@@ -16,6 +16,7 @@ const optionalSecret = z.preprocess(
 );
 
 export const environmentSchema = z.object({
+  DEPLOYMENT_PROFILE: z.enum(['full', 'pilot']).default('full'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65_535).default(3333),
   DATABASE_URL: z
@@ -157,6 +158,7 @@ export function parseEnvironment(source: NodeJS.ProcessEnv): Environment {
 
   if (
     result.data.NODE_ENV === 'production' &&
+    result.data.DEPLOYMENT_PROFILE === 'full' &&
     (result.data.AI_SERVICE_URL === undefined || result.data.AI_SERVICE_SECRET === undefined)
   ) {
     throw new Error(
@@ -166,6 +168,7 @@ export function parseEnvironment(source: NodeJS.ProcessEnv): Environment {
 
   if (
     result.data.NODE_ENV === 'production' &&
+    result.data.DEPLOYMENT_PROFILE === 'full' &&
     (result.data.TELEGRAM_WEBHOOK_SECRET === undefined ||
       result.data.WHATSAPP_WEBHOOK_SECRET === undefined ||
       result.data.N8N_WEBHOOK_SECRET === undefined ||
@@ -178,15 +181,31 @@ export function parseEnvironment(source: NodeJS.ProcessEnv): Environment {
 
   if (result.data.NODE_ENV === 'production') {
     const webhookSecrets = [
-      result.data.TELEGRAM_WEBHOOK_SECRET!,
-      result.data.WHATSAPP_WEBHOOK_SECRET!,
-      result.data.N8N_WEBHOOK_SECRET!,
-    ];
+      result.data.TELEGRAM_WEBHOOK_SECRET,
+      result.data.WHATSAPP_WEBHOOK_SECRET,
+      result.data.N8N_WEBHOOK_SECRET,
+    ].filter((value): value is string => value !== undefined);
     if (new Set(webhookSecrets).size !== webhookSecrets.length) {
       throw new Error(
         'Variaveis de ambiente invalidas: cada integracao deve usar um segredo de webhook exclusivo.',
       );
     }
+  }
+
+  if (
+    result.data.DEPLOYMENT_PROFILE === 'pilot' &&
+    [
+      result.data.AI_SERVICE_URL,
+      result.data.AI_SERVICE_SECRET,
+      result.data.TELEGRAM_WEBHOOK_SECRET,
+      result.data.WHATSAPP_WEBHOOK_SECRET,
+      result.data.N8N_WEBHOOK_SECRET,
+      result.data.N8N_WEBHOOK_URL,
+    ].some((value) => value !== undefined)
+  ) {
+    throw new Error(
+      'Variaveis de ambiente invalidas: o perfil pilot exige integracoes externas desativadas. Use full para habilita-las.',
+    );
   }
 
   if (result.data.NODE_ENV === 'production' && result.data.STORAGE_PROVIDER !== 's3') {

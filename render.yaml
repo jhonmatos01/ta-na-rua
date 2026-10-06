@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: ta-na-rua-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: sh -c 'node dist/database/migrate.js && if [ "$PILOT_BOOTSTRAP" = "true" ]; then node dist/database/bootstrap-pilot.js; fi && exec node dist/server.js'
+    healthCheckPath: /health/database
+    autoDeployTrigger: 'off'
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DEPLOYMENT_PROFILE
+        value: pilot
+      - key: CORS_ORIGIN
+        sync: false
+      - key: TRUST_PROXY_HOPS
+        value: 1
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: STORAGE_PROVIDER
+        value: s3
+      - key: STORAGE_PUBLIC_BASE_URL
+        sync: false
+      - key: STORAGE_BUCKET
+        sync: false
+      - key: STORAGE_REGION
+        value: auto
+      - key: STORAGE_ENDPOINT
+        sync: false
+      - key: STORAGE_ACCESS_KEY
+        sync: false
+      - key: STORAGE_SECRET_KEY
+        sync: false
