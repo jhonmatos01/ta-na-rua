@@ -151,3 +151,63 @@ test('foto privada, decisao pela fila e publicacao independente', async ({ page,
     await context.dispose();
   }
 });
+
+test('perfil persiste e troca de senha encerra a sessao', async ({ page, baseURL }) => {
+  test.skip(!['localhost', '127.0.0.1'].includes(new URL(baseURL).hostname));
+  const email = `perfil-${randomUUID()}@example.test`;
+  const password = 'PerfilInicial123!';
+  const newPassword = 'PerfilAlterado456!';
+  const registered = await page.request.post('/api/v1/auth/register', {
+    data: {
+      name: 'Perfil temporário',
+      email,
+      password,
+      municipalityId: '10000000-0000-4000-8000-000000000001',
+    },
+  });
+  expect(registered.status()).toBe(201);
+  try {
+    await page.goto('/');
+    await browserLogin(page, email, password);
+    await page.locator('.user-name').click();
+    await expect(page.getByRole('heading', { name: 'Minha conta' })).toBeVisible();
+    await page.locator('#profile-form [name=name]').fill('Perfil atualizado');
+    await page.locator('#profile-form [name=neighborhood]').fill('Pituba');
+    await page.getByRole('button', { name: 'Salvar perfil' }).click();
+    await expect(page.locator('#notice')).toHaveText('Perfil atualizado.');
+    await page.reload();
+    await expect(page.locator('#profile-form [name=name]')).toHaveValue('Perfil atualizado');
+    await page.locator('#password-form [name=currentPassword]').fill(password);
+    await page.locator('#password-form [name=newPassword]').fill(newPassword);
+    await page.locator('#password-form [name=confirmation]').fill('SenhaDiferente123!');
+    await page.getByRole('button', { name: 'Alterar senha', exact: true }).click();
+    await expect(page.locator('#password-form .form-error')).toHaveText(
+      'As novas senhas precisam ser iguais.',
+    );
+    await page.locator('#password-form [name=confirmation]').fill(newPassword);
+    await page.getByRole('button', { name: 'Alterar senha', exact: true }).click();
+    await expect(page.locator('#logout')).toHaveCount(0);
+    const oldLogin = await page.request.post('/api/v1/auth/login', { data: { email, password } });
+    expect(oldLogin.status()).toBe(401);
+    await browserLogin(page, email, newPassword);
+    await expect(page.locator('.user-name')).toHaveText('Perfil atualizado');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('#mobile-profile').click();
+    await expect(page.getByRole('heading', { name: 'Minha conta' })).toBeVisible();
+    expect(await page.evaluate('document.documentElement.scrollWidth <= innerWidth')).toBe(true);
+  } finally {
+    const response = await page.request.post('/api/v1/auth/login', {
+      data: { email, password: newPassword },
+    });
+    const fallback = response.ok()
+      ? response
+      : await page.request.post('/api/v1/auth/login', { data: { email, password } });
+    if (fallback.ok()) {
+      const session = await fallback.json();
+      const deleted = await page.request.delete('/api/v1/users/me', {
+        headers: { Authorization: `Bearer ${session.data.accessToken}` },
+      });
+      expect(deleted.status()).toBe(204);
+    }
+  }
+});

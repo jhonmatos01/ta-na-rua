@@ -635,3 +635,12 @@ Estado: em andamento. Primeiro lote implementado em 6 de outubro de 2026, confor
 - [ ] Modularizar a interface e finalizar o restante dos critérios de saída da Fase 11.
 
 As etapas posteriores de comunidade, IA real, rankings e piloto permanecem no plano, sem serem consideradas implementadas por este primeiro lote.
+
+### Segundo lote — conta do usuário
+
+- [x] Consultar e editar perfil pelo frontend com dados da API.
+- [x] Alterar senha e retornar à entrada após revogação das sessões.
+- [x] Extrair sessão/API e tela de conta em módulos separados.
+- [x] Testar persistência, troca de senha e navegação mobile com conta temporária.
+
+Departamentos, administração de usuários e edição de avaliações permanecem pendentes.

@@ -1,6 +1,8 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './style.css';
+import { user, setSession, setUser, refresh, api } from './api.js';
+import { accountView } from './account.js';
 const app = document.querySelector('#app');
 let municipalities = [],
   categoryChoices = [],
@@ -23,16 +25,13 @@ const statuses = {
   REJECTED: 'Rejeitada',
   DUPLICATE: 'Duplicada',
 };
-let token = '',
-  user = null,
-  page = 1,
+let page = 1,
   filter = '',
   city = '',
   search = '',
   view = 'explore',
   selected = null,
   generation = 0;
-let refreshPromise = null;
 const escape = (value) =>
   String(value ?? '').replace(
     /[&<>"']/g,
@@ -47,49 +46,6 @@ const options = (items, current = '') =>
         `<option value="${escape(value)}" ${value === current ? 'selected' : ''}>${escape(label)}</option>`,
     )
     .join('');
-async function refresh() {
-  if (!refreshPromise)
-    refreshPromise = fetch('/api/v1/auth/refresh', { method: 'POST', credentials: 'include' })
-      .then(async (response) => {
-        if (!response.ok) {
-          token = '';
-          user = null;
-          return false;
-        }
-        const body = await response.json();
-        token = body.data.accessToken;
-        user = body.data.user;
-        return true;
-      })
-      .finally(() => {
-        refreshPromise = null;
-      });
-  return refreshPromise;
-}
-async function api(path, { method = 'GET', body, raw = false, retry = true } = {}) {
-  const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
-  if (body && !(body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-    body = JSON.stringify(body);
-  }
-  const response = await fetch(`/api/v1${path}`, { method, headers, body, credentials: 'include' });
-  if (response.status === 401 && token && retry) {
-    if (await refresh())
-      return api(path, {
-        method,
-        body: body && !(body instanceof FormData) ? JSON.parse(body) : body,
-        raw,
-        retry: false,
-      });
-  }
-  if (response.status === 204) return null;
-  if (raw && response.ok) return response;
-  const result = await response.json();
-  if (!response.ok)
-    throw new Error(result.error?.message || 'Não foi possível concluir esta ação.');
-  return result;
-}
 function notice(message) {
   const box = document.querySelector('#notice');
   box.textContent = message;
@@ -97,7 +53,7 @@ function notice(message) {
 }
 function shell() {
   document.body.classList.toggle('management', view === 'dashboard');
-  app.innerHTML = `<aside class="sidebar"><a href="#explore" class="brand"><img class="brand-logo" src="/logo.svg" alt=""> <span>TÁ NA <b>RUA</b><small>Gestão Urbana</small></span></a><p class="tagline">Uma cidade melhor começa com você.</p><div class="nav-label">SUA CIDADE</div><nav><a href="#explore" data-view="explore">◉ <span>Explorar ocorrências</span></a><a href="#map" data-view="map">⌖ <span>Mapa da cidade</span></a>${user ? '<a href="#mine" data-view="mine">▤ <span>Minhas ocorrências</span></a><a href="#notifications" data-view="notifications">♧ <span>Notificações</span></a>' : ''}${operational() ? '<div class="nav-label">GESTÃO MUNICIPAL</div><a href="#dashboard" data-view="dashboard">▥ <span>Painel de gestão</span></a>' : ''}${canModerate() ? '<a href="#moderation" data-view="moderation">▧ <span>Revisão de imagens</span></a>' : ''}</nav><div class="sidebar-bottom"><div class="community-icon">✦</div><strong>Pequenas ações.<br>Grandes mudanças.</strong><p>Veja, registre e acompanhe o que acontece no seu bairro.</p><small>Tá na Rua! · Participação cidadã</small></div></aside><div class="workspace"><header><span class="location">⌖ ${escape(municipalities.find(([id]) => id === user?.municipalityId)?.[1] || 'Sua cidade')}</span><div class="header-actions">${user ? `<span class="user-name">${escape(user.name)}</span><button class="text-button" id="logout">Sair</button>` : '<button class="text-button" id="login">Entrar</button>'}<button class="primary" id="new">＋ Registrar ocorrência</button></div></header><main><div id="notice" role="alert" hidden></div><div id="content" aria-live="polite"></div></main><footer>Juntos, cuidamos do que é de todos. <span>Dados reais da plataforma · Ambiente local</span></footer></div><nav class="mobile-nav" aria-label="Navegação principal"><a href="#explore">⌂<span>Início</span></a><a href="#map">⌖<span>Explorar</span></a><button id="mobile-new" aria-label="Registrar ocorrência">＋</button><a href="#notifications">♧<span>Notificações</span></a><button id="mobile-profile">♙<span>${user ? 'Minha conta' : 'Entrar'}</span></button></nav><dialog id="dialog"><button class="close" aria-label="Fechar">×</button><div id="modal"></div></dialog>`;
+  app.innerHTML = `<aside class="sidebar"><a href="#explore" class="brand"><img class="brand-logo" src="/logo.svg" alt=""> <span>TÁ NA <b>RUA</b><small>Gestão Urbana</small></span></a><p class="tagline">Uma cidade melhor começa com você.</p><div class="nav-label">SUA CIDADE</div><nav><a href="#explore" data-view="explore">◉ <span>Explorar ocorrências</span></a><a href="#map" data-view="map">⌖ <span>Mapa da cidade</span></a>${user ? '<a href="#mine" data-view="mine">▤ <span>Minhas ocorrências</span></a><a href="#notifications" data-view="notifications">♧ <span>Notificações</span></a>' : ''}${operational() ? '<div class="nav-label">GESTÃO MUNICIPAL</div><a href="#dashboard" data-view="dashboard">▥ <span>Painel de gestão</span></a>' : ''}${canModerate() ? '<a href="#moderation" data-view="moderation">▧ <span>Revisão de imagens</span></a>' : ''}</nav><div class="sidebar-bottom"><div class="community-icon">✦</div><strong>Pequenas ações.<br>Grandes mudanças.</strong><p>Veja, registre e acompanhe o que acontece no seu bairro.</p><small>Tá na Rua! · Participação cidadã</small></div></aside><div class="workspace"><header><span class="location">⌖ ${escape(municipalities.find(([id]) => id === user?.municipalityId)?.[1] || 'Sua cidade')}</span><div class="header-actions">${user ? `<a class="user-name" href="#account">${escape(user.name)}</a><button class="text-button" id="logout">Sair</button>` : '<button class="text-button" id="login">Entrar</button>'}<button class="primary" id="new">＋ Registrar ocorrência</button></div></header><main><div id="notice" role="alert" hidden></div><div id="content" aria-live="polite"></div></main><footer>Juntos, cuidamos do que é de todos. <span>Dados reais da plataforma · Ambiente local</span></footer></div><nav class="mobile-nav" aria-label="Navegação principal"><a href="#explore">⌂<span>Início</span></a><a href="#map">⌖<span>Explorar</span></a><button id="mobile-new" aria-label="Registrar ocorrência">＋</button><a href="#notifications">♧<span>Notificações</span></a><button id="mobile-profile">♙<span>${user ? 'Minha conta' : 'Entrar'}</span></button></nav><dialog id="dialog"><button class="close" aria-label="Fechar">×</button><div id="modal"></div></dialog>`;
   document
     .querySelectorAll('[data-view]')
     .forEach((a) => a.classList.toggle('active', a.dataset.view === view));
@@ -106,8 +62,7 @@ function shell() {
   document.querySelector('#logout')?.addEventListener('click', async () => {
     try {
       await api('/auth/logout', { method: 'POST' });
-      token = '';
-      user = null;
+      setSession(null);
       city = '';
       filter = '';
       search = '';
@@ -123,7 +78,7 @@ function shell() {
   });
   document.querySelector('#mobile-new').onclick = () => (user ? createForm() : authForm());
   document.querySelector('#mobile-profile').onclick = () => {
-    if (user) location.hash = operational() ? 'dashboard' : 'mine';
+    if (user) location.hash = 'account';
     else authForm();
   };
   document
@@ -150,6 +105,38 @@ async function render() {
   const content = document.querySelector('#content');
   content.innerHTML = '<div class="loading">Carregando dados da cidade…</div>';
   try {
+    if (view === 'account') {
+      if (!user) throw new Error('Entre para acessar sua conta.');
+      const result = await api('/users/me');
+      if (run !== generation) return;
+      setUser(result.data.user);
+      accountView(content, {
+        user,
+        municipalities,
+        escape,
+        options,
+        api,
+        submit,
+        notice,
+        saved: async (value) => {
+          setUser(value);
+          city = value.role === 'CITY_OPERATOR' ? value.municipalityId || '' : '';
+          shell();
+          await render();
+          notice('Perfil atualizado.');
+        },
+        passwordChanged: async () => {
+          setSession(null);
+          city = '';
+          location.hash = 'explore';
+          view = 'explore';
+          shell();
+          await render();
+          notice('Senha alterada. Entre novamente com a nova senha.');
+        },
+      });
+      return;
+    }
     if (view === 'moderation') {
       await moderationView(content, run);
       return;
@@ -233,8 +220,7 @@ async function authForm(register = false) {
       method: 'POST',
       body: { email: data.email, password: data.password },
     });
-    token = result.data.accessToken;
-    user = result.data.user;
+    setSession(result.data);
     if (user.role === 'CITY_OPERATOR') {
       city = user.municipalityId || '';
       neighborhoodFilter = '';
@@ -528,7 +514,7 @@ async function dashboard(content, run) {
   };
 }
 window.addEventListener('hashchange', () => {
-  view = ['explore', 'map', 'mine', 'notifications', 'dashboard', 'moderation'].includes(
+  view = ['explore', 'map', 'mine', 'notifications', 'dashboard', 'moderation', 'account'].includes(
     location.hash.slice(1),
   )
     ? location.hash.slice(1)
@@ -545,7 +531,7 @@ async function start() {
   } catch (e) {
     catalogError = e.message;
   }
-  view = ['explore', 'map', 'mine', 'notifications', 'dashboard', 'moderation'].includes(
+  view = ['explore', 'map', 'mine', 'notifications', 'dashboard', 'moderation', 'account'].includes(
     location.hash.slice(1),
   )
     ? location.hash.slice(1)

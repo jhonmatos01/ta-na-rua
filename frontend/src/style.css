@@ -1305,3 +1305,18 @@ td small {
 [hidden] {
   display: none !important;
 }
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.account-grid form {
+  display: grid;
+  gap: 18px;
+}
+@media (max-width: 760px) {
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
+}

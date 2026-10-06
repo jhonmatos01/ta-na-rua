@@ -50,7 +50,7 @@ npx --prefix frontend playwright install chromium
 npm run test:e2e --prefix frontend
 ```
 
-Dois cenários Chromium cobrem catálogo/busca/mapa/mobile e registro com foto → leitura privada → fila de moderação → aprovação → publicação → encaminhamento pelo formulário. Usam dados sintéticos, contas fictícias documentadas do seed e exclusão lógica do registro de teste. A escrita de fixtures recusa hostname não local. `E2E_BASE_URL` permite selecionar outra porta local. Resultados e traces estão ignorados pelo Git.
+Três cenários Chromium cobrem catálogo/busca/mapa/mobile e registro com foto → leitura privada → fila de moderação → aprovação → publicação → encaminhamento pelo formulário. Usam dados sintéticos, contas fictícias documentadas do seed e exclusão lógica do registro de teste. A escrita de fixtures recusa hostname não local. `E2E_BASE_URL` permite selecionar outra porta local. Resultados e traces estão ignorados pelo Git.
 
 Resultados desta rodada: suite do backend aprovada com 213 testes em 40 arquivos, novos testes HTTP de acesso/catálogo/rate limit aprovados, 43 verificações reais aprovadas, testes Chromium aprovados, build/lint/formatação aprovados. Cobertura verificada: 86,91% statements, 81,47% branches, 90% functions e 88,49% lines; metas existentes mantidas.
 
@@ -62,3 +62,13 @@ Resultados desta rodada: suite do backend aprovada com 213 testes em 40 arquivos
 - Este lote não inclui gestão completa de usuários/departamentos, recuperação de conta, todas as telas de perfil, edição de avaliações ou processamento assíncrono de IA.
 - A base do frontend foi consolidada, mas sua separação em módulos/componentes ainda é trabalho do próximo lote.
 - Não foi feita publicação externa. O piloto público continua condicionado aos requisitos de mídia, operação e infraestrutura do plano.
+
+## Segundo lote — perfil e senha (6 de outubro de 2026)
+
+Tela Minha conta acessível pelo nome no cabeçalho e pela navegação mobile. Consulta e edição de nome, telefone, bairro e município do cidadão usam `/users/me`; perfis operacionais mantêm o município exibido somente para consulta nesta tela. O e-mail permanece somente para consulta, conforme contrato atual.
+
+Troca de senha exige confirmação no formulário, usa `/auth/change-password` e remove a sessão da interface após revogação das sessões pela API. Tokens continuam apenas em memória. Sessão/API e tela de conta foram extraídas para `frontend/src/api.js` e `frontend/src/account.js`.
+
+O terceiro cenário Chromium cria uma conta temporária e verifica persistência após recarregar, divergência da confirmação, troca de senha, rejeição da senha antiga, entrada com a nova e layout mobile. Exclui logicamente a conta ao terminar. Os três cenários passaram; lint e build do frontend passaram. As métricas de cobertura acima referem-se ao primeiro lote do backend.
+
+Gestão de departamentos/usuários, edição de avaliações e o restante da modularização seguem pendentes. Fase 11 permanece em andamento.
