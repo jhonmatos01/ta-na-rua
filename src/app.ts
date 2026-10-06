@@ -126,6 +126,7 @@ export function createApp(options: AppOptions = {}): Express {
   if (env.STORAGE_PROVIDER === 'local') {
     app.use(
       '/uploads',
+      helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }),
       express.static(path.resolve(env.STORAGE_LOCAL_DIRECTORY), { index: false }),
     );
   }

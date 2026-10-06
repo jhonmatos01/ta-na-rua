@@ -1,4 +1,6 @@
 import { sql } from 'drizzle-orm';
+import { copyFile, mkdir, stat } from 'node:fs/promises';
+import path from 'node:path';
 
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
@@ -127,10 +129,58 @@ function point(longitude: string, latitude: string) {
   return sql`ST_SetSRID(ST_MakePoint(${longitude}::double precision, ${latitude}::double precision), 4326)::geography`;
 }
 
+const demoImageDefinitions = [
+  {
+    sourceName: 'pothole-before-repair.png',
+    storageKey: 'fixtures/phase-1/pothole-before-repair.png',
+  },
+  {
+    sourceName: 'streetlight-after-repair.png',
+    storageKey: 'fixtures/phase-1/streetlight-after-repair.png',
+  },
+] as const;
+
+async function prepareDemoImageFiles() {
+  if (env.STORAGE_PROVIDER !== 'local') {
+    throw new Error(
+      'O seed com imagens de demonstracao exige STORAGE_PROVIDER=local. O seed permanece bloqueado em producao.',
+    );
+  }
+
+  const sourceDirectory = path.resolve('fixtures/demo-occurrences');
+  const storageDirectory = path.resolve(env.STORAGE_LOCAL_DIRECTORY);
+  const publicBaseUrl = env.STORAGE_PUBLIC_BASE_URL.replace(/\/$/u, '');
+
+  async function prepareImage({ sourceName, storageKey }: (typeof demoImageDefinitions)[number]) {
+    const source = path.resolve(sourceDirectory, sourceName);
+    const target = path.resolve(storageDirectory, ...storageKey.split('/'));
+    if (!target.startsWith(`${storageDirectory}${path.sep}`)) {
+      throw new Error('A chave da imagem de demonstracao saiu do diretorio de armazenamento.');
+    }
+
+    await mkdir(path.dirname(target), { recursive: true });
+    await copyFile(source, target);
+    const metadata = await stat(source);
+
+    return {
+      fileUrl: `${publicBaseUrl}/${storageKey}`,
+      storageKey,
+      mimeType: 'image/png' as const,
+      fileSize: metadata.size,
+    };
+  }
+
+  return Promise.all([
+    prepareImage(demoImageDefinitions[0]),
+    prepareImage(demoImageDefinitions[1]),
+  ]);
+}
+
 async function runSeed(): Promise<void> {
   assertDevelopmentSeedAllowed(env.NODE_ENV);
 
   const health = await checkDatabaseHealth();
+  const [potholeImage, lightingImage] = await prepareDemoImageFiles();
   const [citizenHash, operatorHash, moderatorHash, adminHash, blockedHash] = await Promise.all([
     hashPassword('Cidada123!Fase2'),
     hashPassword('Operador123!Fase2'),
@@ -431,10 +481,10 @@ async function runSeed(): Promise<void> {
           occurrenceId: ids.occurrences.pothole,
           reportId: ids.reports.pothole,
           uploadedBy: ids.users.ana,
-          fileUrl: 'https://example.test/fixtures/pothole.webp',
-          storageKey: 'fixtures/phase-1/pothole.webp',
-          mimeType: 'image/webp',
-          fileSize: 1024,
+          fileUrl: potholeImage.fileUrl,
+          storageKey: potholeImage.storageKey,
+          mimeType: potholeImage.mimeType,
+          fileSize: potholeImage.fileSize,
           imageType: 'INITIAL',
           moderationStatus: 'APPROVED',
         },
@@ -443,15 +493,25 @@ async function runSeed(): Promise<void> {
           occurrenceId: ids.occurrences.lighting,
           reportId: ids.reports.lighting,
           uploadedBy: ids.users.ana,
-          fileUrl: 'https://example.test/fixtures/lighting.webp',
-          storageKey: 'fixtures/phase-1/lighting.webp',
-          mimeType: 'image/webp',
-          fileSize: 2048,
+          fileUrl: lightingImage.fileUrl,
+          storageKey: lightingImage.storageKey,
+          mimeType: lightingImage.mimeType,
+          fileSize: lightingImage.fileSize,
           imageType: 'AFTER_REPAIR',
           moderationStatus: 'APPROVED',
         },
       ])
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: occurrenceImages.id,
+        set: {
+          fileUrl: sql`excluded.file_url`,
+          storageKey: sql`excluded.storage_key`,
+          mimeType: sql`excluded.mime_type`,
+          fileSize: sql`excluded.file_size`,
+          imageType: sql`excluded.image_type`,
+          moderationStatus: sql`excluded.moderation_status`,
+        },
+      });
 
     await transaction
       .insert(occurrenceConfirmations)
