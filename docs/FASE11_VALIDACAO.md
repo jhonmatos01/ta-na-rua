@@ -84,3 +84,15 @@ Implementação em `frontend/src/management.js`, sem novas migrations ou altera�
 Edição de avaliações, sanitização de mídia e demais critérios da Fase 11 permanecem pendentes.
 
 Verificação do terceiro lote: lint, build Vite e quatro cenários Chromium aprovados. A API mantém o limite normal de requisições; repetições rápidas da suíte podem atingir HTTP 429. A rodada final passou sem modificar esse limite.
+
+## Quarto lote — edição de avaliações (6 de outubro de 2026)
+
+Nova consulta autenticada `GET /api/v1/occurrences/:occurrenceId/evaluations/me`, exclusiva de CITIZEN: retorna somente a avaliação própria (ou null), permissão de criação/edição, prazo calculado pela política configurada e motivo de somente leitura. Busca direta por ocorrência/usuário, sem percorrer avaliações alheias. Ocorrências inexistentes ou não visíveis continuam protegidas. Não exige migration; OpenAPI atualizado para 57 paths e 67 operações.
+
+O módulo `frontend/src/evaluations.js` mostra resumo público agregado, avaliação própria, nota, qualidade do atendimento e comentário. Preenche a edição com valores existentes e usa PATCH `/evaluations/me`; novas avaliações usam POST somente quando o servidor indica elegibilidade. Não oferece nova avaliação em CONTESTED. Prazo expirado ou reabertura preservam a consulta e retiram o formulário de edição. A API valida novamente toda escrita; permissões exibidas podem mudar entre consulta e envio.
+
+O cenário Chromium de ocorrência foi ampliado para encaminhamento → análise → execução → resolução → avaliação → edição → reabertura. Verifica persistência da nota/atendimento, resumo público atualizado e ausência do formulário após reabertura. Testes de serviço cobrem prazo expirado, status, elegibilidade, perfil e visibilidade; teste HTTP cobre autenticação, papel e UUID. Não são mostrados comentários ou identificadores de terceiros no resumo público.
+
+Sanitização de mídia, infraestrutura S3/CDN real e o restante dos critérios do plano continuam pendentes; Fase 11 em andamento.
+
+Verificação do quarto lote: lint, 217 testes do backend em 40 arquivos, build TypeScript, build Vite, formatação dos arquivos alterados e quatro cenários Chromium aprovados. O ciclo do navegador usa banco/API reais e exclui logicamente a ocorrência temporária ao finalizar.

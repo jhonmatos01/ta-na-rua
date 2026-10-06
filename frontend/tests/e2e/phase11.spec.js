@@ -138,6 +138,45 @@ test('foto privada, decisao pela fila e publicacao independente', async ({ page,
     await page.getByRole('button', { name: 'Salvar status' }).click();
     expect((await forwarded).status()).toBe(200);
     await expect(page.locator('#dialog')).not.toBeVisible();
+    for (const status of ['UNDER_ANALYSIS', 'IN_PROGRESS', 'RESOLVED']) {
+      const response = await context.patch(`/api/v1/occurrences/${occurrenceId}/status`, {
+        headers: { authorization: `Bearer ${admin.token}` },
+        data: {
+          status,
+          ...(status === 'RESOLVED' ? { resolutionDescription: 'Reparo de teste concluído.' } : {}),
+        },
+      });
+      expect(response.status()).toBe(200);
+    }
+    await page.getByRole('button', { name: 'Sair', exact: true }).click();
+    await browserLogin(page, 'ana.cidada@example.test', 'Cidada123!Fase2');
+    await page.goto('/#occurrence/' + occurrenceId);
+    await page.getByText('Avaliar o reparo', { exact: true }).click();
+    await page.locator('#evaluation-form [name=rating]').selectOption('4');
+    await page.locator('#evaluation-form [name=serviceQuality]').selectOption('3');
+    await page.locator('#evaluation-form [name=comment]').fill('Atendimento testado');
+    await page.getByRole('button', { name: 'Enviar avaliação', exact: true }).click();
+    await expect(page.locator('.my-evaluation')).toContainText('Nota 4/5');
+    await expect(page.locator('.evaluation-summary')).toContainText('1 avaliações');
+    await page.getByText('Editar minha avaliação', { exact: true }).click();
+    await expect(page.locator('#evaluation-form [name=rating]')).toHaveValue('4');
+    await page.locator('#evaluation-form [name=rating]').selectOption('5');
+    await page.locator('#evaluation-form [name=comment]').fill('Reparo confirmado');
+    await page.getByRole('button', { name: 'Salvar avaliação', exact: true }).click();
+    await expect(page.locator('.my-evaluation')).toContainText('Nota 5/5');
+    const publicSummary = await context.get(
+      `/api/v1/occurrences/${occurrenceId}/evaluations/summary`,
+    );
+    expect((await publicSummary.json()).data.summary).toMatchObject({ total: 1, averageRating: 5 });
+    const reopened = await context.patch(`/api/v1/occurrences/${occurrenceId}/status`, {
+      headers: { authorization: `Bearer ${admin.token}` },
+      data: { status: 'IN_PROGRESS', reason: 'Reabertura para validar bloqueio de edição.' },
+    });
+    expect(reopened.status()).toBe(200);
+    await page.reload();
+    await expect(page.locator('.my-evaluation')).toContainText('A edição está indisponível');
+    await expect(page.locator('#evaluation-form')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Fechar', exact: true }).click();
     await page.getByRole('button', { name: 'Sair', exact: true }).click();
   } finally {
     if (occurrenceId && admin) {

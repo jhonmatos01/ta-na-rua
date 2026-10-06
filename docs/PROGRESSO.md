@@ -654,3 +654,13 @@ Departamentos, administração de usuários e edição de avaliações permanece
 - [x] Cenário Chromium de gestão com registros temporários e revogação de sessão.
 
 Edição de avaliações e sanitização de mídia permanecem pendentes; Fase 11 em andamento.
+
+### Quarto lote — avaliação do atendimento
+
+- [x] Consultar avaliação própria e permissão/prazo calculados no servidor.
+- [x] Exibir resumo agregado do atendimento na ocorrência.
+- [x] Criar e editar avaliação pelo frontend, incluindo qualidade do atendimento.
+- [x] Preservar leitura após expiração/reabertura sem oferecer edição inválida.
+- [x] Testar permissões no backend e ciclo real de reparo/avaliação no navegador.
+
+As telas de perfil, departamentos, administração de usuários e edição de avaliação estão entregues. Sanitização de mídia e demais critérios de saída ainda impedem considerar a Fase 11 concluída.

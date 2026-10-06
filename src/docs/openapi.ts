@@ -624,6 +624,29 @@ const openApiBaseDocument = {
           updatedAt: { type: 'string', format: 'date-time' },
         },
       },
+      MyEvaluationResponse: {
+        type: 'object',
+        required: ['success', 'data', 'meta'],
+        properties: {
+          success: { type: 'boolean', enum: [true] },
+          meta: successMetaSchema,
+          data: {
+            type: 'object',
+            required: ['evaluation', 'canCreate', 'canEdit', 'editDeadline', 'readOnlyReason'],
+            properties: {
+              evaluation: { allOf: [{ $ref: '#/components/schemas/Evaluation' }], nullable: true },
+              canCreate: { type: 'boolean' },
+              canEdit: { type: 'boolean' },
+              editDeadline: { type: 'string', format: 'date-time', nullable: true },
+              readOnlyReason: {
+                type: 'string',
+                nullable: true,
+                enum: ['STATUS_NOT_EDITABLE', 'EDIT_WINDOW_EXPIRED', null],
+              },
+            },
+          },
+        },
+      },
       EvaluationSummary: {
         type: 'object',
         required: [
@@ -2013,6 +2036,26 @@ const openApiBaseDocument = {
       },
     },
     '/api/v1/occurrences/{occurrenceId}/evaluations/me': {
+      get: {
+        tags: ['Evaluations'],
+        summary: 'Consulta a propria avaliacao e permissao atual de edicao',
+        operationId: 'getMyOccurrenceEvaluation',
+        security: bearerSecurity,
+        parameters: [occurrenceIdParameter],
+        responses: {
+          '200': {
+            description:
+              'Avaliacao propria (ou null), canCreate, canEdit, editDeadline e readOnlyReason. Prazo e status sao avaliados pelo servidor.',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/MyEvaluationResponse' } },
+            },
+          },
+          '401': errorResponse('Autenticacao obrigatoria.'),
+          '403': errorResponse('Somente cidadaos.'),
+          '404': errorResponse('Ocorrencia inexistente ou nao visivel.'),
+          '422': errorResponse('Identificador invalido.'),
+        },
+      },
       patch: {
         tags: ['Evaluations'],
         summary: 'Edita a avaliacao do cidadao autenticado',

@@ -3,7 +3,13 @@ import { AppError } from '../../shared/errors/app-error.js';
 import type { RequestContext } from '../auth/auth.types.js';
 import type { PriorityService } from '../confirmations/priority.service.js';
 import type { RequestPrincipal } from '../occurrences/occurrences.types.js';
-import { negativeRatio, type EvaluationPolicy } from './evaluation-policy.js';
+import {
+  evaluableStatuses,
+  editableEvaluationStatuses,
+  evaluationEditDeadline,
+  negativeRatio,
+  type EvaluationPolicy,
+} from './evaluation-policy.js';
 import type {
   CreateEvaluationInput,
   EvaluationListQuery,
@@ -75,6 +81,37 @@ export class DefaultEvaluationsService implements EvaluationsService {
     private readonly policy: EvaluationPolicy = defaultEvaluationPolicy,
     private readonly now: () => Date = () => new Date(),
   ) {}
+
+  public async getMine(principal: RequestPrincipal, occurrenceId: string): Promise<unknown> {
+    this.requireCitizen(principal);
+    const occurrence = await this.repository.findVisibility(occurrenceId, principal.sub);
+    if (
+      occurrence === null ||
+      (!isPubliclyVisible(occurrence) && !canViewDetails(principal, occurrence))
+    )
+      this.notFound();
+    const evaluation = await this.repository.findMine(occurrenceId, principal.sub);
+    const deadline = evaluation
+      ? evaluationEditDeadline(evaluation.createdAt, this.policy.editWindowDays)
+      : null;
+    const reason = !evaluation
+      ? null
+      : !editableEvaluationStatuses.includes(occurrence.status)
+        ? 'STATUS_NOT_EDITABLE'
+        : deadline !== null && this.now() > deadline
+          ? 'EDIT_WINDOW_EXPIRED'
+          : null;
+    return {
+      evaluation: evaluation ? serializeEvaluation(evaluation, principal.sub) : null,
+      canCreate:
+        evaluation === null &&
+        occurrence.relatedToUser &&
+        evaluableStatuses.includes(occurrence.status),
+      canEdit: evaluation !== null && reason === null,
+      editDeadline: deadline,
+      readOnlyReason: reason,
+    };
+  }
 
   public async create(
     principal: RequestPrincipal,

@@ -112,12 +112,14 @@ export interface EvaluationsRepository {
     policy: EvaluationPolicy,
     calculatePriority: CalculatePriority,
   ): Promise<UpdateEvaluationResult>;
+  findMine(occurrenceId: string, userId: string): Promise<EvaluationRecord | null>;
   findVisibility(occurrenceId: string, userId?: string): Promise<EvaluationVisibility | null>;
   list(occurrenceId: string, offset: number, limit: number): Promise<EvaluationListResult>;
   summary(occurrenceId: string): Promise<EvaluationSummaryRecord | null>;
 }
 
 export interface EvaluationsService {
+  getMine(principal: RequestPrincipal, occurrenceId: string): Promise<unknown>;
   create(
     principal: RequestPrincipal,
     occurrenceId: string,

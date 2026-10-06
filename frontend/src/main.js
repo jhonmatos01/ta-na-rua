@@ -4,6 +4,7 @@ import './style.css';
 import { user, setSession, setUser, refresh, api } from './api.js';
 import { accountView } from './account.js';
 import { managementView } from './management.js';
+import { loadEvaluation, evaluationHtml, bindEvaluation } from './evaluations.js';
 const app = document.querySelector('#app');
 let municipalities = [],
   categoryChoices = [],
@@ -337,6 +338,7 @@ async function detail(id) {
     selected = result.data.occurrence;
     const o = selected;
     const history = await api(`/occurrences/${id}/status-history`);
+    const evaluation = await loadEvaluation(id, { api, user });
     const departments = operational()
       ? (
           await api(
@@ -353,19 +355,7 @@ async function detail(id) {
         )
         .join(
           '',
-        )}<h3>Histórico da ocorrência</h3><div class="timeline">${(history.data.history || history.data.statusHistory || []).map((h) => `<article><strong>${escape(statuses[h.newStatus] || h.newStatus)}</strong><p>${escape(h.publicMessage || h.reason || 'Status atualizado')}</p><small>${date(h.createdAt)}</small></article>`).join('') || '<p>Sem atualizações disponíveis.</p>'}</div>${user?.role === 'CITIZEN' ? '<button id="confirm" class="primary">Eu também vi</button><button id="unconfirm" class="text-button">Remover minha confirmação</button>' : ''}${operational() && allowedTransitions(o.status).length ? `<details><summary>Atualizar status</summary><form id="status-form"><label>Novo status<select name="status">${options(allowedTransitions(o.status).map((status) => [status, statuses[status]]))}</select></label><label>Motivo<textarea name="reason"></textarea></label><label>Mensagem pública<textarea name="publicMessage"></textarea></label><label>Descrição da solução<textarea name="resolutionDescription"></textarea></label><label>Departamento<select name="departmentId"><option value="">Não alterar</option>${options(departments.map((d) => [d.id, d.name]))}</select></label><label>Agendamento<input type="datetime-local" name="scheduledFor"></label><label>Previsão de resolução<input type="datetime-local" name="expectedResolutionAt"></label><label>Ocorrência original, se duplicada (UUID)<input name="duplicateOfOccurrenceId"></label><p class="form-error" role="alert"></p><button class="primary" type="submit">Salvar status</button></form></details>` : ''}${
-        user?.role === 'CITIZEN' && ['RESOLVED', 'CLOSED', 'CONTESTED'].includes(o.status)
-          ? `<details><summary>Avaliar o reparo</summary><form id="evaluation-form"><label>Nota<select name="rating">${options(
-              [
-                [5, '5 — Ótimo'],
-                [4, '4 — Bom'],
-                [3, '3 — Regular'],
-                [2, '2 — Ruim'],
-                [1, '1 — Muito ruim'],
-              ],
-            )}</select></label><label>O problema foi resolvido?<select name="problemResolved"><option value="true">Sim</option><option value="false">Não</option></select></label><label>Comentário<textarea name="comment" maxlength="1000"></textarea></label><small>Disponível para o autor e cidadãos relacionados à ocorrência.</small><p class="form-error" role="alert"></p><button type="submit" class="primary">Enviar avaliação</button></form></details>`
-          : ''
-      }<button class="secondary" id="share">Compartilhar ocorrência</button><p class="detail-error" role="alert"></p>`,
+        )}<h3>Histórico da ocorrência</h3><div class="timeline">${(history.data.history || history.data.statusHistory || []).map((h) => `<article><strong>${escape(statuses[h.newStatus] || h.newStatus)}</strong><p>${escape(h.publicMessage || h.reason || 'Status atualizado')}</p><small>${date(h.createdAt)}</small></article>`).join('') || '<p>Sem atualizações disponíveis.</p>'}</div>${user?.role === 'CITIZEN' ? '<button id="confirm" class="primary">Eu também vi</button><button id="unconfirm" class="text-button">Remover minha confirmação</button>' : ''}${operational() && allowedTransitions(o.status).length ? `<details><summary>Atualizar status</summary><form id="status-form"><label>Novo status<select name="status">${options(allowedTransitions(o.status).map((status) => [status, statuses[status]]))}</select></label><label>Motivo<textarea name="reason"></textarea></label><label>Mensagem pública<textarea name="publicMessage"></textarea></label><label>Descrição da solução<textarea name="resolutionDescription"></textarea></label><label>Departamento<select name="departmentId"><option value="">Não alterar</option>${options(departments.map((d) => [d.id, d.name]))}</select></label><label>Agendamento<input type="datetime-local" name="scheduledFor"></label><label>Previsão de resolução<input type="datetime-local" name="expectedResolutionAt"></label><label>Ocorrência original, se duplicada (UUID)<input name="duplicateOfOccurrenceId"></label><p class="form-error" role="alert"></p><button class="primary" type="submit">Salvar status</button></form></details>` : ''}${evaluationHtml(evaluation, { escape, options })}<button class="secondary" id="share">Compartilhar ocorrência</button><p class="detail-error" role="alert"></p>`,
     );
     hydrateImages(document.querySelector('#modal'));
     document.querySelector('#share').onclick = async () => {
@@ -399,20 +389,20 @@ async function detail(id) {
           event.target.disabled = false;
         }
       });
-    if (document.querySelector('#evaluation-form'))
-      submit('#evaluation-form', async (form) => {
-        const values = Object.fromEntries(new FormData(form));
-        await api(`/occurrences/${id}/evaluations`, {
-          method: 'POST',
-          body: {
-            rating: Number(values.rating),
-            problemResolved: values.problemResolved === 'true',
-            comment: values.comment || null,
-          },
-        });
+    bindEvaluation(id, evaluation, {
+      api,
+      submit,
+      updated: async (contested) => {
         document.querySelector('#dialog').close();
-        notice('Avaliação enviada. Obrigado por participar!');
-      });
+        await render();
+        await detail(id);
+        notice(
+          contested
+            ? 'Avaliação registrada. A ocorrência foi contestada pelas avaliações da comunidade.'
+            : 'Avaliação registrada. Obrigado por participar!',
+        );
+      },
+    });
     if (document.querySelector('#status-form')) {
       const statusForm = document.querySelector('#status-form');
       const selector = statusForm.querySelector('[name=status]');

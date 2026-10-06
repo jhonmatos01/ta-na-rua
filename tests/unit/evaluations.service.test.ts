@@ -93,6 +93,10 @@ class FakeEvaluationsRepository implements EvaluationsRepository {
     return Promise.resolve(this.updateResult);
   }
 
+  public findMine(): Promise<EvaluationRecord | null> {
+    return Promise.resolve(this.listResult.items[0] ?? null);
+  }
+
   public findVisibility(): Promise<EvaluationVisibility | null> {
     return Promise.resolve(this.visibility);
   }
@@ -115,6 +119,63 @@ function service(repository: FakeEvaluationsRepository) {
 }
 
 describe('DefaultEvaluationsService', () => {
+  it('consulta a propria avaliacao sem identidade e calcula prazo no servidor', async () => {
+    const repository = new FakeEvaluationsRepository();
+    const result = await service(repository).getMine(principal(), occurrenceId);
+    expect(result).toMatchObject({
+      evaluation: { id: evaluationId, isMine: true },
+      canCreate: false,
+      canEdit: true,
+      editDeadline: new Date('2026-07-25T15:00:00.000Z'),
+      readOnlyReason: null,
+    });
+    expect((result as { evaluation: object }).evaluation).not.toHaveProperty('userId');
+  });
+
+  it('bloqueia edicao expirada ou apos reabertura e respeita elegibilidade de criacao', async () => {
+    const repository = new FakeEvaluationsRepository();
+    repository.listResult.items = [evaluation({ createdAt: new Date('2026-07-01T15:00:00Z') })];
+    expect(await service(repository).getMine(principal(), occurrenceId)).toMatchObject({
+      canEdit: false,
+      readOnlyReason: 'EDIT_WINDOW_EXPIRED',
+    });
+    repository.visibility!.status = 'IN_PROGRESS';
+    expect(await service(repository).getMine(principal(), occurrenceId)).toMatchObject({
+      canEdit: false,
+      readOnlyReason: 'STATUS_NOT_EDITABLE',
+    });
+    repository.listResult.items = [];
+    repository.visibility!.status = 'CONTESTED';
+    expect(await service(repository).getMine(principal(), occurrenceId)).toMatchObject({
+      evaluation: null,
+      canCreate: false,
+    });
+    repository.visibility!.status = 'RESOLVED';
+    expect(await service(repository).getMine(principal(), occurrenceId)).toMatchObject({
+      canCreate: true,
+    });
+    repository.visibility!.relatedToUser = false;
+    expect(await service(repository).getMine(principal(), occurrenceId)).toMatchObject({
+      canCreate: false,
+    });
+  });
+
+  it('protege consulta propria por perfil e visibilidade', async () => {
+    const repository = new FakeEvaluationsRepository();
+    await expect(
+      service(repository).getMine(principal({ role: 'ADMIN' }), occurrenceId),
+    ).rejects.toMatchObject({ statusCode: 403 });
+    repository.visibility!.status = 'PENDING_REVIEW';
+    repository.visibility!.relatedToUser = false;
+    await expect(service(repository).getMine(principal(), occurrenceId)).rejects.toMatchObject({
+      statusCode: 404,
+    });
+    repository.visibility = null;
+    await expect(service(repository).getMine(principal(), occurrenceId)).rejects.toMatchObject({
+      statusCode: 404,
+    });
+  });
+
   it('cria a avaliacao e publica os indicadores sem identificar outros usuarios', async () => {
     const repository = new FakeEvaluationsRepository();
     const result = (await service(repository).create(

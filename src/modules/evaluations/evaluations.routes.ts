@@ -95,6 +95,21 @@ export function createEvaluationsRouter(options: EvaluationsRouterOptions = {}):
     },
   );
 
+  router.get(
+    '/:occurrenceId/evaluations/me',
+    authenticate,
+    authorizeRoles('CITIZEN'),
+    async (request, response, next) => {
+      try {
+        const { occurrenceId } = parseInput(evaluationOccurrenceIdParamsSchema, request.params);
+        const result = await service.getMine(request.auth!, occurrenceId);
+        response.status(200).json(createSuccessResponse(request, result));
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
   router.patch(
     '/:occurrenceId/evaluations/me',
     authenticate,

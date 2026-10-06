@@ -544,6 +544,14 @@ export class PostgresEvaluationsRepository implements EvaluationsRepository {
         };
   }
 
+  public async findMine(occurrenceId: string, userId: string): Promise<EvaluationRecord | null> {
+    const result = await pool.query<EvaluationRow>(
+      `SELECT ${evaluationColumns} FROM repair_evaluations WHERE occurrence_id = $1 AND user_id = $2`,
+      [occurrenceId, userId],
+    );
+    return result.rows[0] ? mapEvaluation(result.rows[0]) : null;
+  }
+
   public async list(
     occurrenceId: string,
     offset: number,

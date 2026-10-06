@@ -14,6 +14,15 @@ interface ErrorBody {
 }
 
 class FakeEvaluationsService implements EvaluationsService {
+  public getMine(): Promise<unknown> {
+    return Promise.resolve({
+      evaluation: null,
+      canCreate: false,
+      canEdit: false,
+      editDeadline: null,
+      readOnlyReason: null,
+    });
+  }
   public create(): Promise<unknown> {
     return Promise.resolve({ evaluation: { id: randomUUID() }, occurrenceContested: false });
   }
@@ -98,6 +107,29 @@ describe('rotas HTTP da Fase 6', () => {
       .get(`/api/v1/occurrences/${occurrenceId}/evaluations?page=1&limit=10`)
       .set('authorization', `Bearer ${moderator.token}`)
       .expect(200);
+  });
+
+  it('consulta propria exige cidadao autenticado e valida o identificador', async () => {
+    const path = `/api/v1/occurrences/${randomUUID()}/evaluations/me`;
+    await request(createApp({ evaluationsService: new FakeEvaluationsService() }))
+      .get(path)
+      .expect(401);
+    const admin = await authenticatedApp('ADMIN');
+    await request(admin.app).get(path).set('authorization', `Bearer ${admin.token}`).expect(403);
+    const citizen = await authenticatedApp('CITIZEN');
+    await request(citizen.app)
+      .get(path)
+      .set('authorization', `Bearer ${citizen.token}`)
+      .expect(200)
+      .expect((response) =>
+        expect(response.body as unknown).toMatchObject({
+          data: { evaluation: null, canCreate: false },
+        }),
+      );
+    await request(citizen.app)
+      .get('/api/v1/occurrences/invalido/evaluations/me')
+      .set('authorization', `Bearer ${citizen.token}`)
+      .expect(422);
   });
 
   it('edita a propria avaliacao', async () => {

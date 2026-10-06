@@ -54,7 +54,7 @@ describe('OpenAPI final', () => {
     const operationIds = documented.map(({ operation }) => operation.operationId);
 
     expect(Object.keys(openApiDocument.paths)).toHaveLength(57);
-    expect(documented).toHaveLength(66);
+    expect(documented).toHaveLength(67);
     expect(operationIds.every((value) => typeof value === 'string' && value.length > 0)).toBe(true);
     expect(new Set(operationIds).size).toBe(operationIds.length);
   });
