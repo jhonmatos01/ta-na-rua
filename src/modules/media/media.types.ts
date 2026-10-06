@@ -6,6 +6,8 @@ export interface MediaRecord {
   id: string;
   occurrenceId: string;
   storageKey: string;
+  publicStorageKey?: string | null;
+  sanitizationMode?: 'CLEAR' | 'BLUR' | null;
   mimeType: string;
   moderationStatus: ModerationStatus;
   occurrenceStatus: OccurrenceStatus;
@@ -25,6 +27,7 @@ export interface ModerationDecision {
   status: Exclude<ModerationStatus, 'PENDING'>;
   expectedStatus: ModerationStatus;
   reason: string;
+  sanitizationMode?: 'CLEAR' | 'BLUR' | undefined;
 }
 export interface MediaRepository {
   find(selector: { id: string } | { storageKey: string }): Promise<MediaRecord | null>;

@@ -663,7 +663,7 @@ function bindFilters() {
 function hydrateImages(container) {
   container.querySelectorAll('img[data-media]').forEach(async (img) => {
     const path = img.dataset.media;
-    if (!/^\/api\/v1\/media\/[a-f0-9-]{36}$/i.test(path)) return;
+    if (!/^\/api\/v1\/media\/[a-f0-9-]{36}(?:\/original)?$/i.test(path)) return;
     try {
       const response = await api(path.slice('/api/v1'.length), { raw: true });
       const url = URL.createObjectURL(await response.blob());
@@ -701,13 +701,13 @@ async function moderationView(content, run) {
     result.data.images
       .map(
         (image) =>
-          `<article class="panel review-item"><img class="review-photo" data-media="${escape(image.url)}" src="/image-placeholder.svg" alt="Foto em revisão"><small>${escape(image.protocol)}</small><h3>${escape(image.title)}</h3><p>${escape(statuses[image.occurrenceStatus])}</p><button class="text-button review-detail" data-id="${escape(image.occurrenceId)}">Abrir ocorrência</button><form class="review-form" data-id="${escape(image.id)}" data-expected="${escape(image.status)}"><label>Decisão<select name="status">${options(
+          `<article class="panel review-item"><img class="review-photo" data-media="${escape(image.originalUrl)}" src="/image-placeholder.svg" alt="Original privado em revisão">${image.status === 'APPROVED' && image.sanitizationMode ? `<details><summary>Ver versão sanitizada (${image.sanitizationMode === 'BLUR' ? 'com desfoque' : 'sem desfoque'})</summary><img class="review-photo" data-media="${escape(image.url)}" src="/image-placeholder.svg" alt="Versão sanitizada da foto"></details>` : ''}<small>${escape(image.protocol)}</small><h3>${escape(image.title)}</h3><p>${escape(statuses[image.occurrenceStatus])}</p><button class="text-button review-detail" data-id="${escape(image.occurrenceId)}">Abrir ocorrência</button><form class="review-form" data-id="${escape(image.id)}" data-expected="${escape(image.status)}"><label>Decisão<select name="status">${options(
             [
               ['APPROVED', 'Aprovar'],
               ['REJECTED', 'Rejeitar'],
               ['FLAGGED', 'Solicitar revisão adicional'],
             ].filter(([value]) => value !== image.status),
-          )}</select></label><label>Motivo<textarea name="reason" required minlength="3" maxlength="1000"></textarea></label><small>Aprovação da foto não publica a ocorrência automaticamente. Confira exposição de pessoas e conteúdo inadequado.</small><p class="form-error" role="alert"></p><button type="submit" class="primary">Registrar decisão</button></form></article>`,
+          )}</select></label><label>Versão pública<select name="sanitizationMode"><option value="BLUR">Desfoque integral</option><option value="CLEAR">Sem desfoque — confira pessoas e placas</option></select></label><label>Motivo<textarea name="reason" required minlength="3" maxlength="1000"></textarea></label><small>Aprovação da foto não publica a ocorrência automaticamente. A versão pública remove metadados. O desfoque integral oculta detalhes de toda a foto; não há detecção automática de rostos. Revise pessoas, placas e conteúdo inadequado.</small><p class="form-error" role="alert"></p><button type="submit" class="primary">Registrar decisão</button></form></article>`,
       )
       .join('') ||
     '<div class="empty"><h3>Fila sem imagens neste estado</h3><p>Altere o filtro para consultar outras decisões.</p></div>'

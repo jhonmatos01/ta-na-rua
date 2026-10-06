@@ -22,6 +22,13 @@
       "when": 1784516388143,
       "tag": "0002_optimal_network",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791309740157,
+      "tag": "0003_hard_the_leader",
+      "breakpoints": true
     }
   ]
 }

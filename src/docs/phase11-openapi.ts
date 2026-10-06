@@ -29,10 +29,29 @@ const image = {
     status: statuses,
     occurrenceStatus: { type: 'string' },
     url: { type: 'string' },
+    originalUrl: { type: 'string' },
+    sanitizationMode: { type: 'string', enum: ['CLEAR', 'BLUR'], nullable: true },
     createdAt: { type: 'string', format: 'date-time' },
   },
 };
 export const phase11Paths = {
+  '/api/v1/media/{imageId}/original': {
+    get: {
+      operationId: 'readPrivateOriginalImage',
+      summary: 'Ler original privado da imagem',
+      tags: ['Media'],
+      security: bearer,
+      parameters: [imageId],
+      responses: {
+        '200': {
+          description: 'Original, apenas autor, operador do municipio, ADMIN ou MODERATOR.',
+        },
+        '401': error,
+        '404': error,
+        '422': error,
+      },
+    },
+  },
   '/api/v1/media/{imageId}': {
     get: {
       operationId: 'readOccurrenceImage',
@@ -41,7 +60,7 @@ export const phase11Paths = {
       security: [{}, ...bearer],
       parameters: [imageId],
       description:
-        'Anonimo: somente imagem aprovada de ocorrencia publica nao excluida. Autor, operador do municipio e moderadores podem consultar imagens privadas. Cache-Control: private, no-store. S3 deve impedir acesso direto ao bucket/CDN.',
+        'Anonimo: somente copia WebP sanitizada de imagem aprovada de ocorrencia publica nao excluida. Autor, operador do municipio e moderadores podem consultar imagens privadas. Cache-Control: private, no-store. S3 deve impedir acesso direto ao bucket/CDN.',
       responses: {
         '200': {
           description: 'Imagem binaria.',
@@ -107,6 +126,7 @@ export const phase11Paths = {
           properties: {
             status: { type: 'string', enum: ['APPROVED', 'REJECTED', 'FLAGGED'] },
             expectedStatus: statuses,
+            sanitizationMode: { type: 'string', enum: ['CLEAR', 'BLUR'], default: 'BLUR' },
             reason: { type: 'string', minLength: 3, maxLength: 1000 },
           },
         }),

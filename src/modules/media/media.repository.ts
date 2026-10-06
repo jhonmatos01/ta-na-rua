@@ -1,5 +1,6 @@
 import type { QueryResultRow } from 'pg';
 import { pool } from '../../database/pool.js';
+import { MediaSanitizer } from './media.sanitizer.js';
 import { AppError } from '../../shared/errors/app-error.js';
 import type { RequestContext } from '../auth/auth.types.js';
 import type {
@@ -10,10 +11,11 @@ import type {
 } from './media.types.js';
 
 const selection = `oi.id, oi.occurrence_id AS "occurrenceId", oi.storage_key AS "storageKey",
- oi.mime_type AS "mimeType", oi.moderation_status AS "moderationStatus", oi.created_at AS "createdAt",
+ oi.public_storage_key AS "publicStorageKey", oi.sanitization_mode AS "sanitizationMode", oi.mime_type AS "mimeType", oi.moderation_status AS "moderationStatus", oi.created_at AS "createdAt",
  o.status AS "occurrenceStatus", o.municipality_id AS "municipalityId", o.created_by AS "ownerId", o.title, o.protocol`;
 type Row = MediaRecord & QueryResultRow;
 export class PostgresMediaRepository implements MediaRepository {
+  public constructor(private readonly sanitizer = new MediaSanitizer()) {}
   public async find(
     selector: { id: string } | { storageKey: string },
   ): Promise<MediaRecord | null> {
@@ -52,6 +54,8 @@ export class PostgresMediaRepository implements MediaRepository {
     context: RequestContext,
   ): Promise<MediaRecord | null> {
     const client = await pool.connect();
+    let preparedKey: string | null = null;
+    let committed = false;
     try {
       await client.query('BEGIN');
       // Lock occurrence first, matching existing operational transactions.
@@ -85,10 +89,13 @@ export class PostgresMediaRepository implements MediaRepository {
           'A imagem ja foi revisada. Atualize a fila antes de decidir.',
         );
       }
-      await client.query('UPDATE occurrence_images SET moderation_status = $2 WHERE id = $1', [
-        id,
-        decision.status,
-      ]);
+      const mode = decision.sanitizationMode ?? 'BLUR';
+      if (decision.status === 'APPROVED')
+        preparedKey = await this.sanitizer.prepare(image.storageKey, mode);
+      await client.query(
+        'UPDATE occurrence_images SET moderation_status = $2, public_storage_key = $3, sanitization_mode = $4 WHERE id = $1',
+        [id, decision.status, preparedKey, preparedKey ? mode : null],
+      );
       await client.query(
         `INSERT INTO audit_logs (user_id, action, entity_type, entity_id,
         previous_data, new_data, ip_address, user_agent)
@@ -100,6 +107,7 @@ export class PostgresMediaRepository implements MediaRepository {
           JSON.stringify({
             status: decision.status,
             reason: decision.reason,
+            sanitizationMode: preparedKey ? mode : null,
             occurrenceId: image.occurrenceId,
           }),
           context.ipAddress,
@@ -107,12 +115,19 @@ export class PostgresMediaRepository implements MediaRepository {
         ],
       );
       await client.query('COMMIT');
-      return { ...image, moderationStatus: decision.status };
+      committed = true;
+      return {
+        ...image,
+        moderationStatus: decision.status,
+        publicStorageKey: preparedKey,
+        sanitizationMode: preparedKey ? mode : null,
+      };
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
     } finally {
       client.release();
+      if (preparedKey && !committed) await this.sanitizer.discard(preparedKey);
     }
   }
 }

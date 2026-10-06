@@ -56,7 +56,7 @@ Resultados desta rodada: suite do backend aprovada com 213 testes em 40 arquivos
 
 ## Limites desta entrega
 
-- Não há pipeline de desfoque, reencodificação ou remoção de EXIF. A aprovação atual é manual e entrega o arquivo aprovado. Separar original de cópia pública sanitizada continua no plano; não declarar que as fotos já estão anonimizadas.
+- No primeiro lote não havia sanitização. O quinto lote abaixo acrescenta cópia pública reencodificada sem metadados e desfoque integral opcional, mantendo revisão manual. Não há detecção automática de rostos/placas ou garantia automática de anonimização.
 - O adaptador de leitura S3 foi implementado, mas bucket/CDN reais não estão configurados nem validados. Eles devem ser privados e impedir leitura direta antes de uso público. URLs públicas anteriores, se existirem, precisam de revogação/invalidação na infraestrutura; o proxy da aplicação não altera permissões externas.
 - O contrato da IA ainda usa as URLs de storage; um serviço externo precisará de acesso temporário controlado ao original. A IA permanece desativada no ambiente local.
 - Este lote não inclui gestão completa de usuários/departamentos, recuperação de conta, todas as telas de perfil, edição de avaliações ou processamento assíncrono de IA.
@@ -96,3 +96,21 @@ O cenário Chromium de ocorrência foi ampliado para encaminhamento → análise
 Sanitização de mídia, infraestrutura S3/CDN real e o restante dos critérios do plano continuam pendentes; Fase 11 em andamento.
 
 Verificação do quarto lote: lint, 217 testes do backend em 40 arquivos, build TypeScript, build Vite, formatação dos arquivos alterados e quatro cenários Chromium aprovados. O ciclo do navegador usa banco/API reais e exclui logicamente a ocorrência temporária ao finalizar.
+
+## Quinto lote — original privado e cópia sanitizada (6 de outubro de 2026)
+
+Migration `0003_hard_the_leader.sql` acrescenta `public_storage_key` e `sanitization_mode`. Aprovar uma imagem agora decodifica o original com Sharp, aplica orientação, limita a saída a 2048 px por lado, remove metadados (incluindo EXIF/XMP/ICC) e salva uma cópia WebP em outra chave. São aceitos JPEG/PNG/WebP válidos, sem animação, com limite de 40 megapixels. Erro de leitura/decodificação impede a aprovação.
+
+A revisão oferece CLEAR (sem desfoque) ou BLUR (desfoque integral, padrão também para clientes antigos). BLUR reduz a foto para no máximo 12 px por lado, amplia e aplica desfoque. É uma proteção manual de toda a imagem, sem reconhecimento de rostos ou placas e sem garantia automática de anonimização. A moderação deve conferir pessoas, placas e conteúdo inadequado; CLEAR só deve ser escolhido após essa conferência. A fila exibe o original restrito e permite consultar a cópia já aprovada.
+
+`GET /api/v1/media/:imageId/original` exige autenticação e permissão do autor, operador do município, ADMIN ou MODERATOR. A URL normal e as URLs locais legadas entregam a cópia sanitizada das imagens aprovadas; visitantes nunca recebem o original. Aprovação da foto ainda não publica a ocorrência. Revogação remove a referência pública em transação com auditoria. Todas as leituras mantêm `private, no-store`. OpenAPI: 58 paths / 68 operações.
+
+Imagens anteriormente aprovadas sem cópia são bloqueadas para visitantes, sem fallback ao original. Para prepará-las, moderação deve sinalizar a imagem e depois aprová-la novamente. Arquivos fictícios do seed não existem e continuam com ilustração substituta. A migration foi aplicada no banco local e verificada em base temporária.
+
+A cópia é preparada durante a transação de revisão, após travas e conferência de conflito; somente é referenciada após sucesso. Uma cópia produzida numa transação abortada é removida. Cópias de decisões anteriores e originais ficam retidos no storage privado; política de retenção/limpeza permanece pendente. Bucket/CDN reais continuam sem configuração/validação nesta entrega: devem bloquear leitura direta das chaves. Não houve publicação externa.
+
+A fixture PNG sintética foi substituída por arquivo válido após a decodificação completa detectar corrupção no PNG anterior. Testes verificam remoção de metadados, limite de dimensões, redução de detalhes, arquivo inválido, separação entre original/cópia, proteção dos originais e bloqueio de fotos legadas sem cópia. O validador PostgreSQL isolado executa 48 verificações HTTP, incluindo falha de preparação sem alterar status/chave pública, conteúdo WebP distinto, original preservado e acesso direto à chave derivada bloqueado.
+
+A Fase 11 segue em andamento: validação de infraestrutura real, revisão do restante dos critérios e modularização adicional continuam pendentes.
+
+Verificação do quinto lote: lint, 222 testes em 41 arquivos, build TypeScript, build Vite, formatação dos arquivos alterados, 48 verificações HTTP em PostgreSQL isolado e quatro cenários Chromium aprovados. Storage S3/CDN e imagem Docker de produção não foram validados nesta rodada.

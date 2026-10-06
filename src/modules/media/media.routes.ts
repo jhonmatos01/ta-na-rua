@@ -29,21 +29,39 @@ const decisionSchema = z.strictObject({
   status: z.enum(['APPROVED', 'REJECTED', 'FLAGGED']),
   expectedStatus: z.enum(statuses),
   reason: z.string().trim().min(3).max(1000),
+  sanitizationMode: z.enum(['CLEAR', 'BLUR']).optional(),
 });
 export interface MediaRouterOptions {
   repository?: MediaRepository;
   reader?: MediaReader;
   identityRepository?: IdentityRepository;
 }
-export function canReadMedia(image: MediaRecord, principal?: AuthenticatedPrincipal): boolean {
-  if (principal?.role === 'ADMIN' || principal?.role === 'MODERATOR') return true;
-  if (principal?.sub === image.ownerId) return true;
-  if (principal?.role === 'CITY_OPERATOR' && principal.municipalityId === image.municipalityId)
-    return true;
+export function canReadOriginal(image: MediaRecord, principal?: AuthenticatedPrincipal): boolean {
   return (
-    image.moderationStatus === 'APPROVED' &&
-    !['PENDING_REVIEW', 'REJECTED'].includes(image.occurrenceStatus)
+    principal?.role === 'ADMIN' ||
+    principal?.role === 'MODERATOR' ||
+    principal?.sub === image.ownerId ||
+    (principal?.role === 'CITY_OPERATOR' && principal.municipalityId === image.municipalityId)
   );
+}
+export function canReadMedia(image: MediaRecord, principal?: AuthenticatedPrincipal): boolean {
+  return (
+    canReadOriginal(image, principal) ||
+    (!!image.publicStorageKey &&
+      image.moderationStatus === 'APPROVED' &&
+      !['PENDING_REVIEW', 'REJECTED'].includes(image.occurrenceStatus))
+  );
+}
+async function readVisible(
+  image: MediaRecord,
+  principal: AuthenticatedPrincipal | undefined,
+  reader: MediaReader,
+): Promise<{ bytes: Buffer; mime: string }> {
+  if (image.moderationStatus === 'APPROVED' && image.publicStorageKey)
+    return { bytes: await reader.read(image.publicStorageKey), mime: 'image/webp' };
+  if (!canReadOriginal(image, principal))
+    throw new AppError(404, 'IMAGE_NOT_FOUND', 'Imagem nao encontrada.');
+  return { bytes: await reader.read(image.storageKey), mime: image.mimeType };
 }
 export function createMediaRouter(options: MediaRouterOptions = {}): Router {
   const repository = options.repository ?? new PostgresMediaRepository();
@@ -59,6 +77,23 @@ export function createMediaRouter(options: MediaRouterOptions = {}): Router {
         const { imageId } = parseInput(idSchema, request.params);
         const image = await repository.find({ id: imageId });
         if (image === null || !canReadMedia(image, request.auth))
+          throw new AppError(404, 'IMAGE_NOT_FOUND', 'Imagem nao encontrada.');
+        const media = await readVisible(image, request.auth, reader);
+        response.type(media.mime).send(media.bytes);
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+  router.get(
+    '/api/v1/media/:imageId/original',
+    createAuthenticate(identity),
+    async (request, response, next) => {
+      try {
+        response.set('Cache-Control', 'private, no-store').set('Vary', 'Authorization');
+        const { imageId } = parseInput(idSchema, request.params);
+        const image = await repository.find({ id: imageId });
+        if (!image || !canReadOriginal(image, request.auth))
           throw new AppError(404, 'IMAGE_NOT_FOUND', 'Imagem nao encontrada.');
         response.type(image.mimeType).send(await reader.read(image.storageKey));
       } catch (error) {
@@ -85,7 +120,8 @@ export function createMediaRouter(options: MediaRouterOptions = {}): Router {
         const image = await repository.find({ storageKey: key });
         if (image === null || !canReadMedia(image, request.auth))
           throw new AppError(404, 'IMAGE_NOT_FOUND', 'Imagem nao encontrada.');
-        response.type(image.mimeType).send(await reader.read(image.storageKey));
+        const media = await readVisible(image, request.auth, reader);
+        response.type(media.mime).send(media.bytes);
       } catch (error) {
         next(error);
       }
@@ -109,6 +145,8 @@ export function createMediaRouter(options: MediaRouterOptions = {}): Router {
             status: image.moderationStatus,
             occurrenceStatus: image.occurrenceStatus,
             createdAt: image.createdAt,
+            sanitizationMode: image.sanitizationMode ?? null,
+            originalUrl: `/api/v1/media/${image.id}/original`,
             url: `/api/v1/media/${image.id}`,
           })),
           pagination: {

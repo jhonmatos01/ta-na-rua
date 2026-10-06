@@ -664,3 +664,14 @@ Edição de avaliações e sanitização de mídia permanecem pendentes; Fase 11
 - [x] Testar permissões no backend e ciclo real de reparo/avaliação no navegador.
 
 As telas de perfil, departamentos, administração de usuários e edição de avaliação estão entregues. Sanitização de mídia e demais critérios de saída ainda impedem considerar a Fase 11 concluída.
+
+### Quinto lote — sanitização de mídia
+
+- [x] Separar original restrito e cópia pública em chaves distintas.
+- [x] Reencodificar, limitar dimensões e remover metadados antes da aprovação.
+- [x] Oferecer desfoque integral na moderação, sem alegar detecção automática.
+- [x] Bloquear acesso público a imagens legadas sem cópia preparada.
+- [x] Validar falha segura de preparação e proteção de originais em banco isolado.
+- [ ] Validar bucket/CDN privados e política de retenção na infraestrutura real.
+
+Fase 11 permanece em andamento.

@@ -112,11 +112,53 @@ describe('controle de acesso e revisao de imagens', () => {
     const hidden = await setup({ record: { ...image, moderationStatus: 'APPROVED' } });
     await request(hidden.app).get(`/api/v1/media/${image.id}`).expect(404);
     const published = await setup({
-      record: { ...image, occurrenceStatus: 'PUBLISHED', moderationStatus: 'APPROVED' },
+      record: {
+        ...image,
+        occurrenceStatus: 'PUBLISHED',
+        moderationStatus: 'APPROVED',
+        publicStorageKey: 'derived.webp',
+      },
     });
     const response = await request(published.app).get(`/api/v1/media/${image.id}`).expect(200);
     expect(response.headers['cache-control']).toContain('no-store');
-    expect(response.headers['content-type']).toContain('image/png');
+    expect(response.headers['content-type']).toContain('image/webp');
+  });
+  it('nunca publica originais legados sem copia sanitizada', async () => {
+    const { app, reader } = await setup({
+      record: { ...image, moderationStatus: 'APPROVED', occurrenceStatus: 'PUBLISHED' },
+    });
+    await request(app).get(`/api/v1/media/${image.id}`).expect(404);
+    await request(app)
+      .get('/uploads/' + image.storageKey)
+      .expect(404);
+    expect(reader.read).not.toHaveBeenCalled();
+  });
+  it('publico recebe copia e a rota original exige permissao privada', async () => {
+    const record = {
+      ...image,
+      moderationStatus: 'APPROVED' as const,
+      occurrenceStatus: 'PUBLISHED' as const,
+      publicStorageKey: 'derived.webp',
+    };
+    const owner = await setup({ record, owner: true });
+    await request(owner.app).get(`/api/v1/media/${image.id}`).expect(200);
+    expect(owner.reader.read).toHaveBeenLastCalledWith('derived.webp');
+    await request(owner.app).get(`/api/v1/media/${image.id}/original`).expect(401);
+    await request(owner.app)
+      .get(`/api/v1/media/${image.id}/original`)
+      .auth(owner.token, { type: 'bearer' })
+      .expect(200);
+    expect(owner.reader.read).toHaveBeenLastCalledWith(image.storageKey);
+    const other = await setup({ record });
+    await request(other.app)
+      .get(`/api/v1/media/${image.id}/original`)
+      .auth(other.token, { type: 'bearer' })
+      .expect(404);
+    const operator = await setup({ record, role: 'CITY_OPERATOR' });
+    await request(operator.app)
+      .get(`/api/v1/media/${image.id}/original`)
+      .auth(operator.token, { type: 'bearer' })
+      .expect(404);
   });
   it('permite revisao privada pelo autor mas nao por outro cidadao', async () => {
     const own = await setup({ owner: true });

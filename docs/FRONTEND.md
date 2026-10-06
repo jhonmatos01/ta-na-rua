@@ -65,3 +65,5 @@ A interface foi adaptada para azul/branco, identidade com marcador urbano, naveg
 Comentários, ranking/gamificação de cidadãos, benchmarking territorial, publicidade, análise visual de IA em tempo real e série temporal de chamados aparecem na apresentação, mas continuam dependendo de definições e/ou endpoints adicionais. Valores ilustrativos do Canva não são usados como indicadores reais do painel.
 
 A continuidade deste frontend e o fluxo de mídia estão detalhados em [FASE11_VALIDACAO.md](FASE11_VALIDACAO.md).
+
+A fila de moderação agora oferece versão pública sem metadados, com desfoque integral como padrão. O original é restrito; a cópia aprovada pode ser consultada na fila. Detecção automática de rostos/placas e infraestrutura externa continuam pendentes.

@@ -176,6 +176,8 @@ export const occurrenceImages = pgTable(
       .references(() => users.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
     fileUrl: varchar('file_url', { length: 2048 }).notNull(),
     storageKey: varchar('storage_key', { length: 512 }).notNull(),
+    publicStorageKey: varchar('public_storage_key', { length: 512 }),
+    sanitizationMode: varchar('sanitization_mode', { length: 20 }),
     mimeType: varchar('mime_type', { length: 100 }).notNull(),
     fileSize: integer('file_size').notNull(),
     imageType: imageTypeEnum('image_type').default('INITIAL').notNull(),

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFile, spawn, type ChildProcess } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { once } from 'node:events';
-import { rm } from 'node:fs/promises';
+import { rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -161,7 +161,7 @@ async function validate(): Promise<void> {
     assert.equal(activeCities.data.municipalities.length, 2);
 
     const png = Buffer.from(
-      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2hioAAAAASUVORK5CYII=',
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAADElEQVQImWP4//8/AAX+Av5Y8msOAAAAAElFTkSuQmCC',
       'base64',
     );
     const form = new FormData();
@@ -201,6 +201,26 @@ async function validate(): Promise<void> {
       { headers: auth(moderator) },
     );
     assert.ok(queue.data.images.some((item) => item.id === image.id));
+    await writeFile(path.join(directory, key), Buffer.from('corrupted'));
+    await request(
+      '/api/v1/moderation/images/' + image.id,
+      422,
+      mutation(moderator, 'PATCH', {
+        status: 'APPROVED',
+        expectedStatus: 'PENDING',
+        reason: 'Validar falha segura de decodificacao.',
+      }),
+    );
+    const failedApproval = (
+      await database.query<{ moderation_status: string; public_storage_key: string | null }>(
+        'SELECT moderation_status, public_storage_key FROM occurrence_images WHERE id = $1',
+        [image.id],
+      )
+    ).rows[0]!;
+    assert.equal(failedApproval.moderation_status, 'PENDING');
+    assert.equal(failedApproval.public_storage_key, null);
+    await writeFile(path.join(directory, key), png);
+
     await request(
       '/api/v1/moderation/images/' + image.id,
       200,
@@ -226,7 +246,24 @@ async function validate(): Promise<void> {
       mutation(moderator, 'PATCH', { status: 'PUBLISHED', reason: 'Revisao concluida.' }),
     );
     const publicImage = await request<Buffer>(image.url);
-    assert.deepEqual(publicImage, png);
+    assert.notDeepEqual(publicImage, png);
+    assert.equal(publicImage.subarray(0, 4).toString(), 'RIFF');
+    assert.equal(publicImage.subarray(8, 12).toString(), 'WEBP');
+    await request(image.url + '/original', 401);
+    await request(image.url + '/original', 404, { headers: auth(otherCitizen) });
+    const original = await request<Buffer>(image.url + '/original', 200, {
+      headers: auth(citizen),
+    });
+    assert.deepEqual(original, png);
+    const prepared = (
+      await database.query<{ public_storage_key: string; sanitization_mode: string }>(
+        'SELECT public_storage_key, sanitization_mode FROM occurrence_images WHERE id = $1',
+        [image.id],
+      )
+    ).rows[0]!;
+    assert.ok(prepared.public_storage_key && prepared.public_storage_key !== key);
+    assert.equal(prepared.sanitization_mode, 'BLUR');
+    await request('/uploads/' + prepared.public_storage_key, 404);
     await request(legacy);
     const found = await request<Envelope<{ occurrences: { id: string }[] }>>(
       '/api/v1/occurrences?q=exclusiva&limit=1',
