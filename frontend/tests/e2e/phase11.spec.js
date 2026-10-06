@@ -211,3 +211,104 @@ test('perfil persiste e troca de senha encerra a sessao', async ({ page, baseURL
     }
   }
 });
+
+test('gestao de departamentos e acesso de usuario temporario', async ({ page, baseURL }) => {
+  test.skip(!['localhost', '127.0.0.1'].includes(new URL(baseURL).hostname));
+  const context = await apiRequest.newContext({ baseURL });
+  const email = `gestao-${randomUUID()}@example.test`;
+  const password = 'GestaoTemporaria123!';
+  const name = 'Gestão temporária ' + randomUUID().slice(0, 8);
+  const departmentName = 'Departamento E2E ' + randomUUID().slice(0, 8);
+  const registered = await context.post('/api/v1/auth/register', {
+    data: { name, email, password, municipalityId: '10000000-0000-4000-8000-000000000001' },
+  });
+  expect(registered.status()).toBe(201);
+  let departmentId;
+  let userId;
+  let adminToken;
+  try {
+    const adminLogin = await context.post('/api/v1/auth/login', {
+      data: { email: 'adriano.admin@example.test', password: 'Admin123!Fase2' },
+    });
+    adminToken = (await adminLogin.json()).data.accessToken;
+    const before = await context.post('/api/v1/auth/login', { data: { email, password } });
+    const session = (await before.json()).data;
+    userId = session.user.id;
+    await page.goto('/');
+    await browserLogin(page, 'adriano.admin@example.test', 'Admin123!Fase2');
+    await page.locator('[data-view=departments]').click();
+    await expect(page.getByRole('heading', { name: 'Departamentos', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Novo departamento' }).click();
+    await page.locator('#department-form [name=name]').fill(departmentName);
+    const createdPromise = page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/v1/departments') && response.request().method() === 'POST',
+    );
+    await page.getByRole('button', { name: 'Salvar departamento' }).click();
+    departmentId = (await (await createdPromise).json()).data.department.id;
+    const row = page.locator('tr').filter({ hasText: departmentName });
+    await expect(row).toBeVisible();
+    await row.getByRole('button', { name: 'Editar' }).click();
+    await page.locator('#department-form [name=description]').fill('Equipe de teste');
+    await page.locator('#department-form [name=active]').selectOption('false');
+    await page.getByRole('button', { name: 'Salvar departamento' }).click();
+    await expect(row).toContainText('Inativo');
+    await row.getByRole('button', { name: 'Editar' }).click();
+    await page.locator('#department-form [name=active]').selectOption('true');
+    await page.getByRole('button', { name: 'Salvar departamento' }).click();
+    await expect(row).toContainText('Ativo');
+    await page.locator('[data-view=users]').click();
+    const userRow = page.locator('tr').filter({ hasText: email });
+    await expect(userRow).toBeVisible();
+    await userRow.getByRole('button', { name: 'Gerenciar acesso' }).click();
+    await page.locator('#access-form [name=value]').selectOption('BLOCKED');
+    await page.getByRole('button', { name: 'Confirmar alteração' }).click();
+    await expect(userRow).toContainText('Bloqueado');
+    const revoked = await context.get('/api/v1/users/me', {
+      headers: { Authorization: `Bearer ${session.accessToken}` },
+    });
+    expect(revoked.status()).toBe(403);
+    await userRow.getByRole('button', { name: 'Gerenciar acesso' }).click();
+    await page.locator('#access-form [name=value]').selectOption('ACTIVE');
+    await page.getByRole('button', { name: 'Confirmar alteração' }).click();
+    await expect(userRow).toContainText('Ativo');
+    const oldSession = await context.get('/api/v1/users/me', {
+      headers: { Authorization: `Bearer ${session.accessToken}` },
+    });
+    expect(oldSession.status()).toBe(401);
+    await userRow.getByRole('button', { name: 'Gerenciar acesso' }).click();
+    await page.locator('#access-form [name=field]').selectOption('role');
+    await page.locator('#access-form [name=value]').selectOption('MODERATOR');
+    await page.getByRole('button', { name: 'Confirmar alteração' }).click();
+    await expect(userRow).toContainText('Moderador');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('#mobile-profile').click();
+    await page.locator('#content').getByRole('link', { name: 'Departamentos' }).click();
+    await expect(page.getByRole('heading', { name: 'Departamentos', exact: true })).toBeVisible();
+  } finally {
+    if (adminToken) {
+      const headers = { Authorization: `Bearer ${adminToken}` };
+      if (departmentId)
+        expect(
+          (await context.delete(`/api/v1/departments/${departmentId}`, { headers })).status(),
+        ).toBe(204);
+      if (userId)
+        await context.patch(`/api/v1/admin/users/${userId}/status`, {
+          headers,
+          data: { status: 'ACTIVE' },
+        });
+    }
+    const login = await context.post('/api/v1/auth/login', { data: { email, password } });
+    if (login.ok()) {
+      const { data } = await login.json();
+      expect(
+        (
+          await context.delete('/api/v1/users/me', {
+            headers: { Authorization: `Bearer ${data.accessToken}` },
+          })
+        ).status(),
+      ).toBe(204);
+    }
+    await context.dispose();
+  }
+});

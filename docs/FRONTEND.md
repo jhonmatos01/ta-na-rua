@@ -44,7 +44,7 @@ Abra `http://localhost:5173`. O Vite encaminha `/api` e `/uploads` à API em `12
 - Os seletores usam catálogos ativos do banco, incluindo municípios, bairros e categorias. O seed contém dois municípios; adicionar municípios reais exige cadastrá-los com dados geográficos apropriados.
 - Imagens fictícias do seed apontam para `example.test`; a interface mostra uma ilustração substituta. Fotos enviadas pelo formulário usam o storage real.
 - Tiles OpenStreetMap e fontes Google precisam de internet; existem fontes locais alternativas. Geolocalização requer permissão e contexto seguro (HTTPS ou localhost).
-- Gestão completa de usuários e departamentos, edição de perfil/senha, edição de avaliações e filtros avançados do dashboard ainda não possuem telas dedicadas.
+- Perfil/senha, departamentos e gestão ADMIN de usuários possuem telas dedicadas, com filtros e paginação na gestão. Edição de avaliações e filtros avançados do dashboard permanecem pendentes.
 - Não há publicação externa. O [plano de continuidade](PLANO_CONTINUIDADE.md) cruza o repositório com os documentos de produto fornecidos. A cobertura do PRD original continua não verificada enquanto seu texto integral estiver ausente.
 
 O frontend não altera o status histórico de aprovação da Fase 10 do backend.

@@ -72,3 +72,15 @@ Troca de senha exige confirmação no formulário, usa `/auth/change-password` e
 O terceiro cenário Chromium cria uma conta temporária e verifica persistência após recarregar, divergência da confirmação, troca de senha, rejeição da senha antiga, entrada com a nova e layout mobile. Exclui logicamente a conta ao terminar. Os três cenários passaram; lint e build do frontend passaram. As métricas de cobertura acima referem-se ao primeiro lote do backend.
 
 Gestão de departamentos/usuários, edição de avaliações e o restante da modularização seguem pendentes. Fase 11 permanece em andamento.
+
+## Terceiro lote — departamentos e usuários (6 de outubro de 2026)
+
+Tela de departamentos com filtros de município/estado e paginação, criação, edição de nome/descrição e ativação/desativação. Operadores usam o escopo municipal da API; moderadores e administradores podem filtrar municípios. Desativação preserva histórico. Nome/descrição e estado são salvos por chamadas separadas, conforme os endpoints existentes.
+
+Tela de usuários exclusiva de ADMIN, com filtros de município/perfil/estado e paginação. O diálogo de acesso altera um atributo por vez, informa revogação das sessões e bloqueia opções de auto-bloqueio/remoção do próprio perfil administrativo. A API continua responsável pela autorização e auditoria. Contas excluídas aparecem somente para consulta. Os links de gestão ficam disponíveis também em Minha conta para uso mobile.
+
+Implementação em `frontend/src/management.js`, sem novas migrations ou alterações nos contratos da API. O quarto cenário Chromium cria um departamento e uma conta temporários, edita e alterna o departamento, bloqueia/reativa o usuário, verifica rejeição da sessão antiga e altera o perfil. A limpeza desativa o departamento e exclui logicamente a conta; esses registros de auditoria permanecem no banco local.
+
+Edição de avaliações, sanitização de mídia e demais critérios da Fase 11 permanecem pendentes.
+
+Verificação do terceiro lote: lint, build Vite e quatro cenários Chromium aprovados. A API mantém o limite normal de requisições; repetições rápidas da suíte podem atingir HTTP 429. A rodada final passou sem modificar esse limite.

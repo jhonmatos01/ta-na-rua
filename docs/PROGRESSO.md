@@ -644,3 +644,13 @@ As etapas posteriores de comunidade, IA real, rankings e piloto permanecem no pl
 - [x] Testar persistência, troca de senha e navegação mobile com conta temporária.
 
 Departamentos, administração de usuários e edição de avaliações permanecem pendentes.
+
+### Terceiro lote — gestão operacional
+
+- [x] Tela de departamentos com criação, edição e ativação/desativação.
+- [x] Filtros, paginação e escopo municipal para departamentos.
+- [x] Tela ADMIN de usuários com filtros, paginação e alteração de estado/perfil.
+- [x] Acesso às telas de gestão pela conta na navegação mobile.
+- [x] Cenário Chromium de gestão com registros temporários e revogação de sessão.
+
+Edição de avaliações e sanitização de mídia permanecem pendentes; Fase 11 em andamento.
