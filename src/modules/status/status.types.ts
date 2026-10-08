@@ -111,6 +111,7 @@ export interface StatusRepository {
     prepare: PrepareStatusTransition,
   ): Promise<StatusTransitionResult>;
   assign(data: AssignmentData, prepare: PrepareAssignment): Promise<AssignmentResult>;
+  findOperational(occurrenceId: string): Promise<LockedStatusOccurrence | null>;
   findVisibility(occurrenceId: string): Promise<StatusOccurrenceVisibility | null>;
   history(occurrenceId: string): Promise<StatusHistoryRecord[]>;
 }
@@ -128,5 +129,6 @@ export interface StatusService {
     input: UpdateOccurrenceAssignmentInput,
     context: RequestContext,
   ): Promise<unknown>;
+  capabilities(principal: RequestPrincipal, occurrenceId: string): Promise<unknown>;
   history(principal: RequestPrincipal | undefined, occurrenceId: string): Promise<unknown>;
 }

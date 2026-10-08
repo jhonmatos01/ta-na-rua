@@ -12,6 +12,7 @@ import {
   type OccurrenceTimelineItem,
   type OperationalOccurrence,
 } from './api';
+import { OperationActions } from './operation-actions';
 
 const statusLabels: Record<OccurrenceStatus, string> = {
   PENDING_REVIEW: 'Em revisão',
@@ -125,11 +126,22 @@ function StatusBadge({ status }: { status: OccurrenceStatus }) {
   return <span className={`status status--${status.toLowerCase()}`}>{statusLabels[status]}</span>;
 }
 
-function DetailPanel({ occurrenceId, onClose }: { occurrenceId: string; onClose: () => void }) {
+function DetailPanel({
+  occurrenceId,
+  onClose,
+  onDeleted,
+  onQueueChanged,
+}: {
+  occurrenceId: string;
+  onClose: () => void;
+  onDeleted: () => void;
+  onQueueChanged: () => void;
+}) {
   const [occurrence, setOccurrence] = useState<OperationalOccurrence | null>(null);
   const [timeline, setTimeline] = useState<OccurrenceTimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -150,7 +162,7 @@ function DetailPanel({ occurrenceId, onClose }: { occurrenceId: string; onClose:
     return () => {
       active = false;
     };
-  }, [occurrenceId]);
+  }, [occurrenceId, refreshKey]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -159,6 +171,13 @@ function DetailPanel({ occurrenceId, onClose }: { occurrenceId: string; onClose:
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
+
+  function handleOperationChanged() {
+    setLoading(true);
+    setError(null);
+    setRefreshKey((current) => current + 1);
+    onQueueChanged();
+  }
 
   return (
     <div className="detail-backdrop" role="presentation" onMouseDown={onClose}>
@@ -271,6 +290,12 @@ function DetailPanel({ occurrenceId, onClose }: { occurrenceId: string; onClose:
                 </ol>
               )}
             </section>
+
+            <OperationActions
+              occurrence={occurrence}
+              onChanged={handleOperationChanged}
+              onDeleted={onDeleted}
+            />
           </div>
         )}
       </aside>
@@ -395,6 +420,11 @@ export function OperationsPage({ onLogout }: { onLogout: () => Promise<void> }) 
   function closeOccurrence() {
     setSelectedOccurrenceId(null);
     writeUrlState({ filters, selectedOccurrenceId: null }, true);
+  }
+
+  function handleOccurrenceDeleted() {
+    closeOccurrence();
+    void loadOccurrences(filters);
   }
 
   return (
@@ -609,6 +639,8 @@ export function OperationsPage({ onLogout }: { onLogout: () => Promise<void> }) 
           key={selectedOccurrenceId}
           occurrenceId={selectedOccurrenceId}
           onClose={closeOccurrence}
+          onDeleted={handleOccurrenceDeleted}
+          onQueueChanged={() => void loadOccurrences(filters)}
         />
       )}
     </>

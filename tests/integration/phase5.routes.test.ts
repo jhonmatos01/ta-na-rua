@@ -23,6 +23,14 @@ class FakeStatusService implements StatusService {
       occurrence: { id: randomUUID(), assignedDepartmentId: randomUUID() },
     });
   }
+  public capabilities(): Promise<unknown> {
+    return Promise.resolve({
+      occurrence: { id: randomUUID(), status: 'PUBLISHED' },
+      actions: [{ status: 'FORWARDED', requiredFields: ['departmentId'] }],
+      canAssign: true,
+      canDelete: false,
+    });
+  }
   public history(): Promise<unknown> {
     return Promise.resolve({ history: [] });
   }
@@ -127,6 +135,19 @@ describe('rotas HTTP da Fase 5', () => {
       .set('authorization', `Bearer ${operator.token}`)
       .send({ departmentId: randomUUID() })
       .expect(200);
+    await request(operator.app)
+      .get(`/api/v1/occurrences/${occurrenceId}/status-capabilities`)
+      .set('authorization', `Bearer ${operator.token}`)
+      .expect(200)
+      .expect((response) =>
+        expect(response.body).toMatchObject({
+          data: {
+            canAssign: true,
+            canDelete: false,
+            actions: [{ status: 'FORWARDED' }],
+          },
+        }),
+      );
   });
 
   it('protege todas as rotas de departamentos', async () => {

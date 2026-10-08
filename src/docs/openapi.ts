@@ -656,6 +656,47 @@ const openApiBaseDocument = {
           meta: successMetaSchema,
         },
       },
+      StatusCapabilitiesResponse: {
+        type: 'object',
+        required: ['success', 'data', 'meta'],
+        properties: {
+          success: { type: 'boolean', enum: [true] },
+          data: {
+            type: 'object',
+            required: ['occurrence', 'actions', 'canAssign', 'canDelete'],
+            properties: {
+              occurrence: { $ref: '#/components/schemas/StatusOccurrence' },
+              actions: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  required: ['status', 'requiredFields'],
+                  properties: {
+                    status: occurrenceStatusSchema,
+                    requiredFields: {
+                      type: 'array',
+                      items: {
+                        type: 'string',
+                        enum: [
+                          'departmentId',
+                          'duplicateOfOccurrenceId',
+                          'expectedResolutionAt',
+                          'reason',
+                          'resolutionDescription',
+                          'scheduledFor',
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+              canAssign: { type: 'boolean' },
+              canDelete: { type: 'boolean' },
+            },
+          },
+          meta: successMetaSchema,
+        },
+      },
       Evaluation: {
         type: 'object',
         required: [
@@ -2249,6 +2290,31 @@ const openApiBaseDocument = {
           '404': errorResponse('Ocorrencia nao encontrada.'),
           '409': errorResponse('Transicao inexistente na maquina de estados.'),
           '422': errorResponse('Campo obrigatorio, departamento, data ou alvo invalido.'),
+        },
+      },
+    },
+    '/api/v1/occurrences/{occurrenceId}/status-capabilities': {
+      get: {
+        tags: ['Status'],
+        summary: 'Consulta as ações operacionais permitidas para a ocorrência',
+        description:
+          'Calcula no back-end as transições e campos exigidos para o perfil autenticado, além das permissões de atribuição e exclusão lógica.',
+        operationId: 'getOccurrenceStatusCapabilities',
+        security: bearerSecurity,
+        parameters: [occurrenceIdParameter],
+        responses: {
+          '200': {
+            description: 'Capacidades operacionais do perfil e estado atuais.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/StatusCapabilitiesResponse' },
+              },
+            },
+          },
+          '401': errorResponse('Autenticação obrigatória.'),
+          '403': errorResponse('Perfil ou município sem permissão.'),
+          '404': errorResponse('Ocorrência não encontrada.'),
+          '422': errorResponse('Identificador inválido.'),
         },
       },
     },
