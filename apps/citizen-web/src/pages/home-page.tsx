@@ -94,7 +94,7 @@ export function HomePage() {
           <div className="relative z-10 min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-brand-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-brand-700">
               <span className="size-2 rounded-full bg-brand-600" aria-hidden="true" />
-              FE‑3 · Registro cidadão
+              FE‑7 · Versão candidata
             </p>
             <h1 className="mt-6 max-w-2xl text-5xl font-black leading-[1.03] tracking-[-0.055em] text-ink sm:text-6xl">
               Sua cidade. <span className="text-brand-600">Mais próxima.</span>
@@ -203,7 +203,7 @@ export function HomePage() {
                   <span className="grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-700 transition group-hover:bg-brand-600 group-hover:text-white">
                     {journey.icon}
                   </span>
-                  <span className="text-sm font-black text-slate-300">{journey.number}</span>
+                  <span className="text-sm font-black text-slate-600">{journey.number}</span>
                 </div>
                 <h3 className="mt-8 text-xl font-black tracking-tight text-ink">{journey.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-slate-600">{journey.description}</p>

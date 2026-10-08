@@ -1,9 +1,9 @@
 const clusters = [
-  { label: '32', className: 'left-[14%] top-[20%] bg-coral-500 ring-coral-100' },
-  { label: '14', className: 'left-[47%] top-[13%] bg-amber-500 ring-amber-100' },
+  { label: '32', className: 'left-[14%] top-[20%] bg-red-700 ring-coral-100' },
+  { label: '14', className: 'left-[47%] top-[13%] bg-amber-800 ring-amber-100' },
   { label: '18', className: 'right-[15%] top-[24%] bg-brand-600 ring-brand-100' },
   { label: '9', className: 'left-[25%] bottom-[25%] bg-emerald-500 ring-emerald-100' },
-  { label: '27', className: 'right-[32%] bottom-[31%] bg-coral-500 ring-coral-100' },
+  { label: '27', className: 'right-[32%] bottom-[31%] bg-red-700 ring-coral-100' },
 ];
 
 const filters = [

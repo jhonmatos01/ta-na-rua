@@ -18,8 +18,11 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage --maxWorkers=1 --testTimeout=15000",
     "test:e2e": "playwright test",
+    "test:a11y": "playwright test e2e/accessibility.spec.ts",
+    "audit:lighthouse": "node scripts/audit-lighthouse.mjs",
     "typecheck": "tsc --noEmit",
-    "validate": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "validate": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "validate:release": "npm run validate && npm run test:e2e && npm run pwa:check && npm run audit:lighthouse"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.3",
@@ -30,6 +33,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/vite": "^4.3.3",
@@ -40,12 +44,14 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "@vitest/coverage-v8": "^4.1.10",
+    "chrome-launcher": "^1.2.1",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
     "jsdom": "^29.1.1",
+    "lighthouse": "^13.4.1",
     "msw": "^2.15.0",
     "prettier": "^3.9.5",
     "tailwindcss": "^4.3.3",

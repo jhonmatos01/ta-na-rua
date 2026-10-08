@@ -832,3 +832,32 @@ Estado: concluída e aprovada pelo usuário em 22 de julho de 2026; pronta para 
 - A API continua sendo a única autoridade para vínculo, status avaliável, janela de edição e contestação automática.
 
 Relatório em [FE6_VALIDACAO.md](FE6_VALIDACAO.md).
+
+## FE‑7 — Estabilização e demonstração
+
+Estado: concluída e aprovada pelo usuário em 24 de julho de 2026; publicada para revisão no PR #8.
+
+### Checklist da versão candidata
+
+- [x] Preservar todas as jornadas funcionais da FE‑0 à FE‑6.
+- [x] Executar lint, TypeScript estrito, testes, cobertura e build do aplicativo.
+- [x] Executar a validação integral do back-end preservado.
+- [x] Auditar acessibilidade WCAG com Axe nas rotas públicas críticas em desktop e mobile; preservar as jornadas autenticadas nos E2E funcionais.
+- [x] Corrigir contraste, semântica da marca e anúncio de restauração da sessão.
+- [x] Auditar desempenho, acessibilidade, boas práticas e SEO com Lighthouse.
+- [x] Revalidar E2E funcional, artefatos PWA e operação responsiva.
+- [x] Verificar mapa com ruas, filtros e ocorrências em 320 × 760 e 1440 × 900.
+- [x] Confirmar ausência de sobreposição móvel, rolagem horizontal e erros de console.
+- [x] Documentar inicialização, demonstração, limites, segurança e métricas.
+- [x] Obter validação visual final do usuário.
+- [x] Publicar a branch e abrir o PR empilhado sobre a FE‑6.
+
+### Evidências
+
+- Relatório completo em [FE7_VALIDACAO.md](FE7_VALIDACAO.md).
+- Roteiro reproduzível em [ROTEIRO_DEMONSTRACAO_CIDADAO.md](ROTEIRO_DEMONSTRACAO_CIDADAO.md).
+- 207 testes do back-end e 83 testes unitários do aplicativo aprovados.
+- 20 cenários funcionais e 14 auditorias Axe executados em desktop e mobile.
+- Lighthouse aprovado na página inicial e no mapa, com limites explícitos por rota.
+- Nenhuma alteração de banco, migration, contrato existente da API, JWT ou autorização.
+- Branch `codex/citizen-stabilization` publicada no PR [#8](https://github.com/jhonmatos01/ta-na-rua/pull/8), a partir do commit `5d85b9a`.

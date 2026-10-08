@@ -2,7 +2,7 @@
 
 API REST da plataforma de inteligencia urbana colaborativa **Ta na Rua!**, implementada a partir do PRD Tecnico Consolidado v1.2.
 
-Estado atual: **back-end MVP concluído e preservado; FE‑0 a FE‑5 publicadas em PRs empilhados; FE‑6 Avaliação e PWA em validação**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
+Estado atual: **back-end MVP concluído e preservado; FE‑0 a FE‑7 publicadas em branches empilhadas; Painel da Prefeitura é a próxima frente**. O acompanhamento detalhado fica em [docs/PROGRESSO.md](docs/PROGRESSO.md).
 
 ## O que existe
 
@@ -154,12 +154,12 @@ npm run dev
 
 ### Interfaces visuais de teste
 
-- **Aplicativo cidadão FE‑6** em `http://localhost:5173`, com início, autenticação, mapa público, detalhes, registro de ocorrências, confirmação comunitária, histórico pessoal, notificações, avaliação pós-reparo, instalação PWA e perfil. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
+- **Aplicativo cidadão FE‑7** em `http://localhost:5173`, com início, autenticação, mapa público, detalhes, registro de ocorrências, confirmação comunitária, histórico pessoal, notificações, avaliação pós-reparo, instalação PWA e perfil. O guia fica em [apps/citizen-web/README.md](apps/citizen-web/README.md).
 - **Swagger UI** e a interface principal para testar a API: autentique com `Authorize`, preencha os formularios e execute cada rota, inclusive uploads de imagem.
 - **Adminer** permite inspecionar visualmente o PostgreSQL/PostGIS com os valores de `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB` do `.env` local.
 - A pasta `api-client` pode ser aberta no aplicativo **Bruno** para executar os cenarios agrupados por modulo.
 
-A FE‑6 ainda não inclui interfaces de operador e administrador. Consulte [docs/FE6_VALIDACAO.md](docs/FE6_VALIDACAO.md).
+A FE‑7 conclui e estabiliza o aplicativo cidadão; interfaces de operador e administrador permanecem fora deste front-end. Consulte [docs/FE7_VALIDACAO.md](docs/FE7_VALIDACAO.md).
 
 ## Variaveis de ambiente da fase
 

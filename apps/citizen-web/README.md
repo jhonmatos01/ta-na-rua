@@ -1,6 +1,6 @@
-# Tá na Rua! — aplicativo cidadão (FE‑6)
+# Tá na Rua! — aplicativo cidadão (FE‑7)
 
-Aplicação cidadã responsiva, acessível e instalável. A FE‑6 preserva as jornadas anteriores e acrescenta avaliação pós-reparo, pendências pessoais, abertura direta por notificação, resumo público e operação como PWA.
+Aplicação cidadã responsiva, acessível e instalável. A FE‑7 estabiliza as jornadas entregues da FE‑0 à FE‑6, amplia as verificações automatizadas de acessibilidade e desempenho e prepara uma demonstração reproduzível da versão candidata.
 
 ## Pré-requisitos
 
@@ -83,9 +83,12 @@ A inicialização falha de forma explícita se uma variável obrigatória estive
 | `npm test`              | executa os testes Vitest/RTL/MSW       |
 | `npm run test:coverage` | mede e valida a cobertura mínima       |
 | `npm run test:e2e`      | executa os cenários Playwright         |
+| `npm run test:a11y`     | audita WCAG com Axe em desktop e mobile |
 | `npm run build`         | gera o build de produção               |
 | `npm run pwa:check`     | valida manifesto, SW, offline e ícones |
+| `npm run audit:lighthouse` | valida desempenho, acessibilidade, boas práticas e SEO |
 | `npm run validate`      | executa lint, tipos, testes e build    |
+| `npm run validate:release` | executa a esteira completa da versão candidata |
 
 Na primeira execução dos E2E, instale o navegador de testes com `npx playwright install chromium`.
 
@@ -141,5 +144,7 @@ Como não existe endpoint público de metadados, a lista opcional de categorias 
 - [Relatório de validação FE‑4](../../docs/FE4_VALIDACAO.md)
 - [Relatório de validação FE‑5](../../docs/FE5_VALIDACAO.md)
 - [Relatório de validação FE‑6](../../docs/FE6_VALIDACAO.md)
+- [Relatório de validação FE‑7](../../docs/FE7_VALIDACAO.md)
+- [Roteiro de demonstração do aplicativo cidadão](../../docs/ROTEIRO_DEMONSTRACAO_CIDADAO.md)
 - [Relatório de validação FE‑0](../../docs/FE0_VALIDACAO.md)
 - [Limitações conhecidas FE‑0](../../docs/FE0_LIMITACOES.md)
