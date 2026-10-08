@@ -7,6 +7,15 @@ import {
   type RankingItem,
 } from './api';
 import { useAuth } from './auth-context';
+import { OperationsPage } from './operations-page';
+
+type MunicipalView = 'occurrences' | 'overview';
+
+function currentMunicipalView(): MunicipalView {
+  return new URLSearchParams(window.location.search).get('view') === 'occurrences'
+    ? 'occurrences'
+    : 'overview';
+}
 
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
@@ -165,6 +174,7 @@ function MetricCard({
 
 function DashboardPage() {
   const { user, logout } = useAuth();
+  const [view, setView] = useState<MunicipalView>(currentMunicipalView);
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [ranking, setRanking] = useState<RankingItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -191,20 +201,50 @@ function DashboardPage() {
     return () => window.clearTimeout(initialLoad);
   }, [loadDashboard]);
 
+  useEffect(() => {
+    const handleHistory = () => setView(currentMunicipalView());
+    window.addEventListener('popstate', handleHistory);
+    return () => window.removeEventListener('popstate', handleHistory);
+  }, []);
+
+  function navigate(viewToOpen: MunicipalView) {
+    setView(viewToOpen);
+    const nextUrl =
+      viewToOpen === 'occurrences'
+        ? `${window.location.pathname}?view=occurrences`
+        : window.location.pathname;
+    window.history.pushState({}, '', nextUrl);
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <Brand compact />
         <nav aria-label="Navegação principal">
-          <a className="nav-item nav-item--active" href="#visao-geral" aria-current="page">
+          <button
+            className={`nav-item nav-item--primary ${
+              view === 'overview' ? 'nav-item--active' : ''
+            }`}
+            type="button"
+            aria-current={view === 'overview' ? 'page' : undefined}
+            onClick={() => navigate('overview')}
+          >
             <span aria-hidden="true">⌂</span> Visão geral
-          </a>
-          <a className="nav-item" href="#prioridades">
+          </button>
+          <button
+            className={`nav-item nav-item--primary ${
+              view === 'occurrences' ? 'nav-item--active' : ''
+            }`}
+            type="button"
+            aria-current={view === 'occurrences' ? 'page' : undefined}
+            onClick={() => navigate('occurrences')}
+          >
             <span aria-hidden="true">△</span> Ocorrências
-          </a>
-          <a className="nav-item" href="#categorias">
+          </button>
+          <button className="nav-item nav-item--disabled" type="button" disabled>
             <span aria-hidden="true">⌖</span> Mapa de calor
-          </a>
+            <small>em breve</small>
+          </button>
           <span className="nav-item nav-item--disabled">
             <span aria-hidden="true">✓</span> Equipes <small>em breve</small>
           </span>
@@ -224,6 +264,10 @@ function DashboardPage() {
       </aside>
 
       <main className="dashboard" id="visao-geral">
+        {view === 'occurrences' ? (
+          <OperationsPage onLogout={logout} />
+        ) : (
+          <>
         <header className="dashboard__header">
           <div>
             <span className="eyebrow">Centro de operações</span>
@@ -362,6 +406,8 @@ function DashboardPage() {
             </div>
           </article>
         </section>
+          </>
+        )}
       </main>
     </div>
   );

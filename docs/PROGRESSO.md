@@ -887,3 +887,27 @@ Relatório em [PM0_VALIDACAO.md](PM0_VALIDACAO.md).
 
 Branch `codex/municipal-dashboard-foundation` publicada no PR
 [#9](https://github.com/jhonmatos01/ta-na-rua/pull/9).
+
+## PM‑1 — Fila operacional de ocorrências
+
+Estado: implementação técnica e validação visual aprovadas pelo usuário em 24 de julho de
+2026; publicada para revisão no PR #10.
+
+### Checklist
+
+- [x] Consumir a fila real de ocorrências no escopo municipal autorizado.
+- [x] Implementar filtros por status, categoria, bairro e período.
+- [x] Preservar filtros, paginação e chamado selecionado na URL.
+- [x] Exibir imagens reais na fila e no detalhe, inclusive nos chamados de demonstração.
+- [x] Implementar detalhe com dados operacionais, localização exata autorizada e histórico.
+- [x] Não expor identidade do cidadão nem duplicar autorização no front-end.
+- [x] Implementar carregamento, erro, vazio, atualização e paginação.
+- [x] Manter Visão geral e Ocorrências acessíveis na navegação mobile.
+- [x] Aprovar lint, tipos, build e validação integrada no navegador.
+- [x] Obter validação visual do usuário.
+- [x] Publicar a branch após aprovação explícita.
+
+Relatório em [PM1_VALIDACAO.md](PM1_VALIDACAO.md).
+
+Branch `codex/municipal-operations-queue` publicada no PR
+[#10](https://github.com/jhonmatos01/ta-na-rua/pull/10), a partir do commit `5d0e042`.
