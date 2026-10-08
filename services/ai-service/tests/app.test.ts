@@ -42,6 +42,7 @@ describe('AI service HTTP contract', () => {
       status: 'ok',
       mode: 'DETERMINISTIC',
       productionReady: false,
+      providerConfigured: false,
       humanReviewRequired: true,
     });
   });

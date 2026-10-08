@@ -1,20 +1,31 @@
-# Serviço de análise assistida — AI-0
+# Serviço de análise assistida — AI-1
 
 Este pacote implementa o serviço HTTP externo consumido pelo back-end do Tá na
-Rua. A AI-0 valida o contrato de integração, sugere categoria e gravidade e
-compara ocorrências próximas.
+Rua. A AI-1 adiciona um adaptador OpenAI-compatible para o OmniRoute local,
+mantendo o contrato de integração, as sugestões e a revisão humana.
 
-## Limite desta fase
+## Modos disponíveis
 
-O mecanismo atual é determinístico e exclusivo de desenvolvimento. Ele não usa
-um modelo treinado, não avalia o conteúdo real da imagem e não está autorizado a
-tomar decisões automáticas:
+`DETERMINISTIC` continua disponível para testes sem dependência externa. Para
+usar seu OmniRoute local, configure:
+
+```text
+AI_SERVICE_MODE=OPENAI_COMPATIBLE
+AI_PROVIDER_BASE_URL=http://localhost:20128/v1
+AI_PROVIDER_MODEL=Meu primeiro combo
+```
+
+O serviço aceita `AI_PROVIDER_API_KEY` quando o provedor exigir autenticação,
+mas nunca registra essa chave. Não coloque uma chave real no repositório; use
+somente o `.env` local, ignorado pelo Git.
+
+Nos dois modos, a integração não toma decisões automáticas:
 
 - `requiresHumanReview` é sempre `true`;
-- a confiança nunca ultrapassa `0.70`;
 - categorias são escolhidas somente entre as fornecidas pelo back-end;
 - duplicidades são sugeridas somente entre as ocorrências próximas fornecidas;
-- o modo `DETERMINISTIC` se recusa a iniciar com `NODE_ENV=production`.
+- o modo `DETERMINISTIC` se recusa a iniciar com `NODE_ENV=production`;
+- respostas SSE ou JSON do provedor passam por validação estrita antes de sair.
 
 Um provedor real será conectado na AI-1 depois da escolha explícita do serviço,
 do modelo, do orçamento e da política de privacidade.

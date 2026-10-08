@@ -984,7 +984,31 @@ aguardando aprovação para publicação.
 - [x] Impedir o modo determinístico de iniciar em produção.
 - [x] Aprovar lint, tipos, 12 testes e build do serviço.
 - [x] Aprovar lint, 210 testes e build do projeto principal.
-- [ ] Obter aprovação do usuário.
-- [ ] Publicar a branch após aprovação explícita.
+- [x] Obter aprovação do usuário.
+- [x] Publicar a branch após aprovação explícita.
 
 Relatório em [AI0_VALIDACAO.md](AI0_VALIDACAO.md).
+
+## AI-1 — Integração com OmniRoute local
+
+Estado: implementação técnica concluída, validada e aprovada pelo usuário em 23 de agosto de
+2026; publicada para revisão no PR #14.
+
+### Checklist
+
+- [x] Adicionar modo `OPENAI_COMPATIBLE` ao serviço isolado.
+- [x] Configurar `http://localhost:20128/v1` e o modelo `Meu primeiro combo` por ambiente.
+- [x] Aceitar resposta SSE e JSON do provedor.
+- [x] Validar schema, categorias e IDs contra o contexto enviado.
+- [x] Manter revisão humana obrigatória.
+- [x] Mapear indisponibilidade e resposta inválida para erros controlados.
+- [x] Não versionar nem registrar a chave do provedor.
+- [x] Aprovar lint, typecheck, 17 testes e build da AI-1.
+- [x] Executar teste integrado sintético contra o OmniRoute local.
+- [x] Documentar configuração e limitações.
+- [x] Obter aprovação do usuário.
+- [x] Publicar a branch após aprovação explícita.
+
+Relatório em [AI1_VALIDACAO.md](AI1_VALIDACAO.md).
+
+Branch `codex/ai-local-provider` publicada no PR
